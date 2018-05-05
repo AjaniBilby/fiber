@@ -70,9 +70,10 @@ class Worker{
     //   If so awaken it
     //   Return if the thread actually did wake up from this event
     bool Wake();
+
+    void Collapse();
   private:
     Job Seek();
-    void Collapse();
     void Process();
 };
 // Declare work force
@@ -81,10 +82,11 @@ std::vector<Worker> workers;
 
 
 
-
+typedef std::chrono::high_resolution_clock Time;
+std::chrono::duration<float> execution_duration;
 
 
 void Dispatch(unsigned int codePos, unsigned char* memPos, bool target, unsigned int to, unsigned int from);
-void KeepAlive();
+float KeepAlive();
 
-#endif Thread_H
+#endif

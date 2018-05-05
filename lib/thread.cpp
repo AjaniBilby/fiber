@@ -1,10 +1,13 @@
 #include <iostream>
-#include <atomic>
 #include <vector>
 #include <thread>
 #include <chrono>
 
-#include "interpreter.h"
+// typedef std::chrono::high_resolution_clock Time;  [Profile-Timing]
+// Time execution_start;                             [Profile-Timing]
+// Time execution_end;                               [Profile-Timing]
+// std::chrono::duration<float> fsec;                [Profile-Timing]
+
 
 namespace Thread{
   unsigned int MAX_STACK = 1000;
@@ -118,6 +121,8 @@ namespace Thread{
           return false;
         }
       };
+
+      void Collapse();
     private:
       Job Seek(){
         std::cout<< "SEEKING" << std::endl;
@@ -150,12 +155,6 @@ namespace Thread{
         return result;
       };
 
-      void Collapse(){
-        this->active = false;
-
-        std::cout << "Thread[" << this->id << "]: Sleep..." << std::endl;
-      };
-
       void Process(){
         this->active = true;
         Job proposal;
@@ -180,8 +179,20 @@ namespace Thread{
   // Declare work force
   std::vector<Worker> workers;
 
+  void Worker::Collapse(){
+    this->active = false;
+        std::cout << "Thread[" << this->id << "]: Sleep..." << std::endl;
 
+        // See if this is the last thread to close
+        for (int i=0; i<MAX_WORKERS; i++){
+          if (workers[i].active){
+            return;
+          }
+        }
 
+        // If so, then mark now as the end time
+        // execution_end = Time::now(); [Profile-Timing]
+  }
 
 
 
@@ -225,17 +236,19 @@ namespace Thread{
     return;
   };
 
-  void KeepAlive(){
+  float KeepAlive(){
     while (true){
       // If there are still elements in the stack to be done, then hold processing
       for (int i=0; i<MAX_STACK; i++){
         if (stack[i].completed == false){
           std::cout<< "Remaining tasks exist " << i << std::endl;
-          std::this_thread::sleep_for(std::chrono::seconds(1));
+          std::this_thread::sleep_for(std::chrono::milliseconds(500));
           continue;
         }
       }
-      return;
+
+      // fsec fs = execution_end - execution_start;  [Profile-Timing]
+      return 0;
     }
   }
 
@@ -251,6 +264,7 @@ namespace Thread{
       stack[i].Initilize();
     }
 
+    // execution_start = Time::now();  [Profile-Timing]
     return;
   }
 }
