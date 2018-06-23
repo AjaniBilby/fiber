@@ -100,7 +100,8 @@ void Instance::CmdSS        (Action *act){
     this->handle[ act->param[2] ].write(count);
 
     // Move the data to the space space
-    memcpy(this->handle[ act->param[1] ].value.address, &str, count );
+    // memcpy(this->handle[ act->param[1] ].value.address, &str, count );
+    memmove(this->handle[ act->param[1] ].value.address, &str, count );
 
   }else{
     count = this->handle[ act->param[2] ].read();
