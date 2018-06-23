@@ -34,7 +34,7 @@ enum Commands {
   mode,
   translate,
   math,
-  clone,
+  copy,
 };
 
 enum MathOpperation {

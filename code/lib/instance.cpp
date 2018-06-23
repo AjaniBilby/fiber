@@ -32,8 +32,8 @@ void Instance::Execute (int cursor){
       case Commands::mode:
         this->CmdMode(act);
         break;
-      case Commands::clone:
-        this->CmdClone(act);
+      case Commands::copy:
+        this->CmdCopy(act);
         break;
       case Commands::translate:
         this->CmdTranslate(act);
@@ -284,7 +284,7 @@ void Instance::CmdMath      (Action *act){
       break;
   }
 }
-void Instance::CmdClone     (Action *act){
+void Instance::CmdCopy     (Action *act){
   Register *A = &this->handle[ act->param[0] ];
   Register *B = &this->handle[ act->param[1] ];
 

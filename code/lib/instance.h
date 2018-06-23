@@ -40,7 +40,7 @@ class Instance{
     void CmdMode(Action *act);
     void CmdTranslate(Action *act);
     void CmdMath(Action *act);
-    void CmdClone(Action *act);
+    void CmdCopy(Action *act);
 };
 
 #endif

@@ -325,8 +325,8 @@ bool Function::Parse(Segregate::StrCommands source){
       continue;
     }
 
-    if (source[i][0] == "clone"){
-      this->code[ptr].command = Commands::clone;
+    if (source[i][0] == "copy"){
+      this->code[ptr].command = Commands::copy;
       this->code[ptr].line = i;
       this->code[ptr].param.resize(2);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
