@@ -1,0 +1,90 @@
+# Setup Registers
+  # String starting point
+  mode rA uint64
+
+  # itterator value
+  mode rB uint64
+
+  # Length of the string
+  mode rC uint64
+
+  # The character being written to the string
+  mode rD uint8
+
+  # Where the current character will be placed
+  mode rE uint64
+
+
+# Construct string
+  # Define the length of the string
+  set rC B
+  
+  # Allocate space for string
+  mem alloc rA rC
+  copy rA rE
+
+  # Set itterator
+  set rB 1
+
+  # Build string from chars
+    # 'H'
+    set rD 48
+    push rD rE
+
+    # 'e'
+    math rE add rB rE
+    set rD 65
+    push rD rE
+
+    # 'l'
+    math rE add rB rE
+    set rD 6C
+    push rD rE
+
+    # 'l'
+    math rE add rB rE
+    set rD 6C
+    push rD rE
+
+    # 'o'
+    math rE add rB rE
+    set rD 6F
+    push rD rE
+
+    # ' '
+    math rE add rB rE
+    set rD 20
+    push rD rE
+
+    # 'W'
+    math rE add rB rE
+    set rD 57
+    push rD rE
+
+    # 'o'
+    math rE add rB rE
+    set rD 6F
+    push rD rE
+
+    # 'r'
+    math rE add rB rE
+    set rD 72
+    push rD rE
+
+    # 'l'
+    math rE add rB rE
+    set rD 6C
+    push rD rE
+
+    # 'd'
+    math rE add rB rE
+    set rD 64
+    push rD rE
+
+
+# Print the constructed string
+  ss out rA rC
+
+
+# Cleanup (optional)
+  mem unalloc rA rC
