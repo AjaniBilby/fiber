@@ -18,14 +18,14 @@ Function::Function(std::string name, int size){
   this->name = name;
   this->size = size;
 }
-bool Function::Parse(Segregate::StrCommands source){  
-  int codeLen = source.size();
+bool Function::Interpret(Segregate::StrCommands source){  
+  unsigned int codeLen = source.size();
   this->code.resize( codeLen );
 
   bool error = false;          // Has an error been detected?
   int ptr = 0;                 // Which index to place the next action
 
-  for (int i=0; i<codeLen; i++){
+  for (unsigned int i=0; i<codeLen; i++){
 
     // Ignore empty lines
     if (source[i].size() == 0){
@@ -37,10 +37,12 @@ bool Function::Parse(Segregate::StrCommands source){
       continue;
     }
 
+    std::cout << "Interp: " << source[i][0] << std::endl;
+
     // Stop
     if (source[i][0] == "stop"){
       this->code[ptr].command = Commands::stop;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(0);
 
       ptr++;
@@ -50,18 +52,22 @@ bool Function::Parse(Segregate::StrCommands source){
     // Set Register
     if (source[i][0] == "set"){
       if (source[i].size() < 3){
-        std::cerr << "Error: Not enough arguments supplied (line: "<< i <<")"<<std::endl;
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::set;                               // Command ID
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(3);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);                // Register to be written
 
       if (this->code[ptr].param[0] == -1){
-        std::cerr << "Error: Supplied bad target register '"<<source[i][1]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad target register "<<source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
       
       if (source[i][2][0] == 'r'){
@@ -69,8 +75,10 @@ bool Function::Parse(Segregate::StrCommands source){
         this->code[ptr].param[2] = GetRegisterID(source[i][2]);              // Constant value
 
         if (this->code[ptr].param[2] == -1){
-          std::cerr << "Error: Supplied bad value register '"<<source[i][2]<<"' (line: "<<i<<")" << std::endl;
+          std::cerr << "Error: Supplied bad value register "<<source[i][2] << std::endl;
+          std::cerr << "  line: " << i+1 << std::endl;
           error = true;
+          continue;
         }
       }else{
         this->code[ptr].param[1] = 0;
@@ -84,23 +92,29 @@ bool Function::Parse(Segregate::StrCommands source){
     // Pull data from loc into register
     if (source[i][0] == "push"){
       if (source[i].size() < 3){
-        std::cerr << "Error: Not enough arguments supplied (line: "<< i <<")";
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::push;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(2);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
       this->code[ptr].param[1] = GetRegisterID(source[i][2]);
 
       if (this->code[ptr].param[0] == -1){
-        std::cerr << "Error: Supplied bad value register '"<<source[i][1]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad value register '"<<source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
       if (this->code[ptr].param[1] == -1){
-        std::cerr << "Error: Supplied bad address register '"<<source[i][2]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad address register '"<<source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
 
       ptr++;
@@ -110,23 +124,29 @@ bool Function::Parse(Segregate::StrCommands source){
     // Push register data to loc
     if (source[i][0] == "pull"){
       if (source[i].size() < 3){
-        std::cerr << "Error: Not enough arguments supplied (line: "<< i <<")";
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::pull;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(2);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
       this->code[ptr].param[1] = GetRegisterID(source[i][2]);
 
       if (this->code[ptr].param[0] == -1){
-        std::cerr << "Error: Supplied bad value register '"<<source[i][1]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad value register '"<<source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
       if (this->code[ptr].param[1] == -1){
-        std::cerr << "Error: Supplied bad address register '"<<source[i][2]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad address register '"<<source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
 
       ptr++;
@@ -139,10 +159,11 @@ bool Function::Parse(Segregate::StrCommands source){
         std::cerr << "Error: Not enough arguments supplied" << std::endl;
         std::cerr << "  line: " << i << std::endl; 
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::memory;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(2);
 
       if (source[i][1] == "alloc"){
@@ -153,18 +174,23 @@ bool Function::Parse(Segregate::StrCommands source){
         error = true;
         std::cerr << "Error: Unknown memory action '" << source[i][1] << "'" << std::endl;
         std::cerr << "  line: " << i << std::endl; 
+        continue;
       }
 
       this->code[ptr].param[1] = GetRegisterID(source[i][2]);
       this->code[ptr].param[2] = GetRegisterID(source[i][3]);
 
       if (this->code[ptr].param[1] == -1){
-        std::cerr << "Error: Supplied bad address register '"<<source[i][2]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad address register '"<<source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
       if (this->code[ptr].param[1] == -1){
-        std::cerr << "Error: Supplied bad length register '"<<source[i][3]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad length register '"<<source[i][3] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
 
       ptr++;
@@ -174,12 +200,14 @@ bool Function::Parse(Segregate::StrCommands source){
     // Standard Stream
     if (source[i][0] == "ss"){
       if (source[i].size() < 4){
-        std::cerr << "Error: Not enough arguments supplied (line: "<< i <<")";
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::standardStream;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(3);
 
       // Mode
@@ -196,12 +224,16 @@ bool Function::Parse(Segregate::StrCommands source){
       this->code[ptr].param[1] = GetRegisterID(source[i][2]);
       this->code[ptr].param[2] = GetRegisterID(source[i][3]);
       if (this->code[ptr].param[1] == -1){
-        std::cerr << "Error: Supplied bad address register '"<<source[i][2]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad address register '"<<source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
       if (this->code[ptr].param[2] == -1){
-        std::cerr << "Error: Supplied bad length register '"<<source[i][3]<<"' (line: "<<i<<")" << std::endl;
+        std::cerr << "Error: Supplied bad length register '"<<source[i][3] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
         error = true;
+        continue;
       }
 
       ptr++;
@@ -211,15 +243,24 @@ bool Function::Parse(Segregate::StrCommands source){
     // Switch Register Mode
     if (source[i][0] == "mode"){
       if (source[i].size() < 3){
-        std::cerr << "Error: Not enough arguments supplied (line: "<< i <<")";
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::mode;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(2);
 
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid target register "<<source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
       if       (source[i][2] == "uint8"){
         this->code[ptr].param[1] = static_cast<unsigned long long int>(RegisterMode::uint8);
       }else if (source[i][2] == "int8"){
@@ -245,6 +286,7 @@ bool Function::Parse(Segregate::StrCommands source){
       if (this->code[ptr].param[0] == -1){
         std::cerr << "Error: Supplied bad target register '"<<source[i][1]<<"' (line: "<<i<<")" << std::endl;
         error = true;
+        continue;
       }
 
       ptr++;
@@ -254,15 +296,24 @@ bool Function::Parse(Segregate::StrCommands source){
     // Switch Register Mode, translating the data accordingly
     if (source[i][0] == "translate"){
       if (source[i].size() < 3){
-        std::cerr << "Error: Not enough arguments supplied (line: "<< i <<")";
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
         error = true;
+        continue;
       }
 
       this->code[ptr].command = Commands::translate;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(2);
 
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid target register "<<source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
       if       (source[i][2] == "uint8"){
         this->code[ptr].param[1] = static_cast<unsigned long long int>(RegisterMode::uint8);
       }else if (source[i][2] == "int8"){
@@ -288,19 +339,47 @@ bool Function::Parse(Segregate::StrCommands source){
       if (this->code[ptr].param[0] == -1){
         std::cerr << "Error: Supplied bad target register '"<<source[i][1]<<"' (line: "<<i<<")" << std::endl;
         error = true;
+        continue;
       }
 
       ptr++;
       continue;
     }
 
+    // Math operations
     if (source[i][0] == "math"){
+      if (source[i].size() < 5){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
       this->code[ptr].command = Commands::math;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(4);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
       this->code[ptr].param[2] = GetRegisterID(source[i][3]);
       this->code[ptr].param[3] = GetRegisterID(source[i][4]);
+
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid A register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[2] == -1){
+        std::cerr << "Error: Invalid B register " << source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[3] == -1){
+        std::cerr << "Error: Invalid result register" << source[i][3] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
 
       if (source[i][2] == "add"){
         this->code[ptr].param[1] = MathOpperation::add;
@@ -318,19 +397,250 @@ bool Function::Parse(Segregate::StrCommands source){
         std::cerr << "Error: Invalid math operation \""<< source[i][2] << "\"" <<std::endl;
         std::cerr << "  Line: "<<i<<std::endl;
         error = true;
-        ptr -= 1;
+        continue;
       }
       
       ptr++;
       continue;
     }
 
+    // Duplicate the properties of one register to another
     if (source[i][0] == "copy"){
+      if (source[i].size() < 3){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
       this->code[ptr].command = Commands::copy;
-      this->code[ptr].line = i;
+      this->code[ptr].line = i+1;
       this->code[ptr].param.resize(2);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
       this->code[ptr].param[1] = GetRegisterID(source[i][2]);
+
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid from register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[1] == -1){
+        std::cerr << "Error: Invalid to register" << source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      ptr++;
+      continue;
+    }
+
+    // Duplicate data from one position to another
+    if (source[i][0] == "move"){
+      if (source[i].size() < 4){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      this->code[ptr].command = Commands::move;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(3);
+      this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      this->code[ptr].param[1] = GetRegisterID(source[i][2]);
+      this->code[ptr].param[2] = GetRegisterID(source[i][3]);
+
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid from register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[1] == -1){
+        std::cerr << "Error: Invalid to register " << source[i][2] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[2] == -1){
+        std::cerr << "Error: Invalid length register " << source[i][3] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+
+      ptr++;
+      continue;
+    }
+
+    // Compare two register's numetric value
+    if (source[i][0] == "compare"){
+      if (source[i].size() < 5){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      std::cout << "  +" << std::endl;
+      this->code[ptr].command = Commands::compare;
+      std::cout << "  +" << std::endl;
+      this->code[ptr].line = i+1;
+      std::cout << "  +" << std::endl;
+      this->code[ptr].param.resize(4);
+      std::cout << "  +" << std::endl;
+      this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      std::cout << "  +" << std::endl;
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid A register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      if       (source[i][2] == "="){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::equal);
+      }else if (source[i][2] == ">"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::greater);
+      }else if (source[i][2] == "<"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::less);
+      }else{
+        std::cerr << "Error: Invalid comparason operation \""<< source[i][2] << "\"" <<std::endl;
+        std::cerr << "  Line: "<<i<<std::endl;
+        error = true;
+        continue;
+      }
+
+      this->code[ptr].param[2] = GetRegisterID(source[i][3]);
+      this->code[ptr].param[3] = GetRegisterID(source[i][4]);
+
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid B register " << source[i][3] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid result register " << source[i][4] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      ptr++;
+      continue;
+    }
+
+    // Bitwise operations
+    if (source[i][0] == "bit"){
+      if (source[i].size() < 5){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      this->code[ptr].command = Commands::compare;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(5);
+
+      // A
+      this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid A register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      // Operation
+      if       (source[i][1] == "&"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::AND);
+      }else if (source[i][1] == "|"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::OR);
+      }else if (source[i][1] == "^"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::XOR);
+      }else if (source[i][1] == "<<"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::LeftShift);
+      }else if (source[i][1] == ">>"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::RightShift);
+      }else if (source[i][1] == "~"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::NOT);
+      }
+      // B
+      if (source[i][2][0] == 'r'){
+        this->code[ptr].param[2] = 1;
+        this->code[ptr].param[3] = GetRegisterID(source[i][3]);
+
+        if (this->code[ptr].param[0] == -1){
+          std::cerr << "Error: Invalid B register " << source[i][3] << std::endl;
+          std::cerr << "  line: " << i+1 << std::endl;
+          error = true;
+          continue;
+        }
+      }else{
+        this->code[ptr].param[2] = 0;
+        this->code[ptr].param[3] = Hexidecimal::convert(source[i][3]);       // Constant value
+      }
+
+      // Result Store
+      this->code[ptr].param[4] = GetRegisterID(source[i][4]);
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid result register " << source[i][4] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      ptr++;
+      continue;
+    }
+
+
+    // IF statement
+    if (source[i][0] == "if"){
+      if (source[i].size() < 2){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      std::cout << "  +" << std::endl;
+      this->code[ptr].command = Commands::IF;
+      std::cout << "  +" << std::endl;
+      this->code[ptr].line = i+1;
+      std::cout << "  +" << std::endl;
+      this->code[ptr].param.resize(2);
+      std::cout << "  + " << source[i][1] << std::endl;
+      this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      std::cout << "  +" << std::endl;
+      // param[1] = jump else statement
+
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid boolean register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+      }
+
+      ptr++;
+      continue;
+    }
+    if (source[i][0] == "else"){
+      this->code[ptr].command = Commands::ELSE;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(2);
+
+      ptr++;
+      continue;
+    }
+    if (source[i][0] == "endif"){
+      this->code[ptr].command = Commands::ENDIF;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(0);
 
       ptr++;
       continue;
@@ -350,6 +660,76 @@ bool Function::Parse(Segregate::StrCommands source){
   this->code.resize(ptr);
 
   if (error){
+    return false;
+  }
+
+  return true;
+};
+
+bool Function::SimplifyIF(){
+  unsigned int elseLoc;  // Where the Else clause starts
+  bool hasElse;          // Does the statement have an else clause
+
+  unsigned int depth = 0; // Ignore inner IF content while scanning for else/endif
+
+  unsigned int length = this->code.size();
+  unsigned int i;
+  unsigned int j;
+  for (i=0; i<length; i++){
+
+    if (this->code[i].command == Commands::IF){
+      depth = 0;
+      hasElse = false;
+
+      // Find the extra statements
+      for (j=0; j<length; j++){
+        if (this->code[j].command == Commands::IF){
+          depth += 1;
+        }
+
+        if (this->code[j].command == Commands::ELSE){
+          elseLoc = j;
+          hasElse = true;
+        }
+
+        if (this->code[j].command == Commands::ENDIF){
+          depth -= 1;
+
+          if (depth == 0){
+            break;
+          }
+        }
+      }
+
+      // How far to skip on the false statement
+      if (hasElse){
+        // Has an else statement,
+
+        // So ensure that the true statement will not overflow in to the else
+        this->code[elseLoc].command = Commands::jump;
+        this->code[elseLoc].param[0] = 1;
+        this->code[elseLoc].param[1] = j-elseLoc;
+
+        // Give the if statement a jump to point for the false condition
+        this->code[i].param[1] = elseLoc-i + 1; // +1: Don't run the else overflow
+      }else{
+        // No else statement, so just skip to the end
+        this->code[i].param[1] = j-i;
+      }
+      this->code[j].command = Commands::blank;
+    }
+
+  }
+
+  return true;
+};
+
+
+bool Function::Parse(Segregate::StrCommands src){
+  if (this->Interpret(src) == false){
+    return false;
+  }
+  if (this->SimplifyIF() == false){
     return false;
   }
 

@@ -41,6 +41,9 @@ class Instance{
     void CmdTranslate(Action *act);
     void CmdMath(Action *act);
     void CmdCopy(Action *act);
+    void CmdMove(Action *act);
+    void CmdComp(Action *act);
+    void CmdBit(Action *act);
 };
 
 #endif

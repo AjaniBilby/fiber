@@ -1,40 +1,41 @@
+# Prints True
+
+
 # Setup Registers
   # String starting point
   mode rA uint64
 
-  # itterator value
-  mode rB uint64
+  # Boolean
+  mode rB uint8
 
   # Length of the string
   mode rC uint64
 
-  # The character being written to the string
-  mode rD uint8
-
-  # Where the current character will be placed
-  mode rE uint64
+  # The character[4] being written to the string
+  mode rD uint32
 
 
 # Construct string
   # Define the length of the string
-  set rC 2
+  set rC 4
   
   # Allocate space for string
   mem alloc rA rC
-  clone rA rE
 
-  # Set itterator
-  set rB 1
 
-  # Build string from chars
-  set rD 41
-  push rD rE
-  math rA add rB rE
+compare rB > 128 rB
 
-  push rD rE
+if rB
+  # Build string 'Yes'
+  set rD 736559
+else
+  # Build string 'No'
+  set rD 6F4E
+endif
 
 
 # Print the constructed string
+  push rD rA
   ss out rA rC
 
 

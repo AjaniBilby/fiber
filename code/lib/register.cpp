@@ -17,13 +17,15 @@ unsigned long long int Register::read(){
 
     case RegisterMode::int32:
     case RegisterMode::uint32:
-    case RegisterMode::float32:
       return this->value.uint32;
+    case RegisterMode::float32:
+      return this->value.float32;
 
     case RegisterMode::int64:
     case RegisterMode::uint64:
-    case RegisterMode::float64:
       return this->value.uint64;
+    case RegisterMode::float64:
+      return this->value.float64;
   }
 
   std::cerr << "Invalid register mode: " << this->mode;
@@ -515,7 +517,7 @@ int GetRegisterID(std::string str){
   long int result;
 
   if (str[0] != 'r'){
-    throw "Invalid Register: "+str;
+    return -1;
   }
   
   switch (str[1]){

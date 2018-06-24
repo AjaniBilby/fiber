@@ -1,0 +1,2 @@
+set rE 1
+compare rB > rE rB

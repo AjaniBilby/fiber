@@ -35,6 +35,15 @@ enum Commands {
   translate,
   math,
   copy,
+  move,
+  compare,
+  jump,
+
+  IF,
+  ELSE,
+  ENDIF,
+
+  blank
 };
 
 enum MathOpperation {
@@ -44,6 +53,20 @@ enum MathOpperation {
   multiply,
   modulus,
   exponent
+};
+
+enum Comparason{
+  equal,
+  less,
+  greater
+};
+enum BitOperator{
+  AND,
+  OR,
+  XOR,
+  LeftShift,
+  RightShift,
+  NOT
 };
 
 struct Action {
@@ -70,6 +93,8 @@ class Function{
     bool Parse(Segregate::StrCommands source);
     int GetChildsID(std::string str); // Get the function ID number of a child
   private:
+    bool Interpret(Segregate::StrCommands source);
+    bool SimplifyIF();
 };
 
 

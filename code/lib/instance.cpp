@@ -14,12 +14,16 @@ void Instance::Execute (int cursor){
   while (cursor < length){
     act = &this->ref->code[cursor];
 
-    // std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
+    std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
 
     switch (act->command){
       case Commands::math:
         this->CmdMath(act);
         break;
+      case Commands::compare:
+        this->CmdComp(act);
+        break;
+
       case Commands::set:
         this->CmdSet(act);
         break;
@@ -38,18 +42,43 @@ void Instance::Execute (int cursor){
       case Commands::translate:
         this->CmdTranslate(act);
         break;
+      case Commands::move:
+        this->CmdMove(act);
+        break;
+
       case Commands::standardStream:
         this->CmdSS(act);
         break;
       case Commands::memory:
         this->CmdMem(act);
         break;
+
+      case Commands::IF:
+        if (this->handle[ act->param[0] ].value.uint8 != 1){
+          cursor += act->param[1];
+        }
+        break;
+
+      case Commands::blank:
+        break;
+
+      case Commands::jump:
+        if (act->param[0] == 1){
+          cursor += act->param[1];
+        }else{
+          cursor -= act->param[1] -1;
+        }
+        break;
+
       case Commands::stop:
           return;
         break;
       case Commands::invalid:
-      default:
         std::cerr << "Warn: Unexpected invalid command" << std::endl;
+        std::cerr << "  line: " << act->line << std::endl;
+      default:
+        std::cerr << "Warn: Unknown command " << act->command << std::endl;
+        std::cerr << "  line: " << act->line << std::endl;
         break;
     }
 
@@ -100,8 +129,7 @@ void Instance::CmdSS        (Action *act){
     this->handle[ act->param[2] ].write(count);
 
     // Move the data to the space space
-    // memcpy(this->handle[ act->param[1] ].value.address, &str, count );
-    memmove(this->handle[ act->param[1] ].value.address, &str, count );
+    memcpy(this->handle[ act->param[1] ].value.address, &str, count );
 
   }else{
     count = this->handle[ act->param[2] ].read();
@@ -284,11 +312,1221 @@ void Instance::CmdMath      (Action *act){
       C->Translate(goal);
       break;
   }
-}
+};
 void Instance::CmdCopy     (Action *act){
   Register *A = &this->handle[ act->param[0] ];
   Register *B = &this->handle[ act->param[1] ];
 
   B->mode = A->mode;
   B->write( A->read() );
+};
+void Instance::CmdMove     (Action *act){
+  if (this->handle[ act->param[0] ].mode != RegisterMode::uint64){
+    std::cerr << "Warn: Attempting to move data using a register for the from address not in uint64 mode" << std::endl;
+    std::cerr << "  Mode: "<<this->handle[ act->param[0] ].mode                                           << std::endl;
+    std::cerr << "  Line: "<<act->line                                                                    << std::endl;
+  };
+  if (this->handle[ act->param[1] ].mode != RegisterMode::uint64){
+    std::cerr << "Warn: Attempting to move data using a register for the to address not in uint64 mode" << std::endl;
+    std::cerr << "  Mode: "<<this->handle[ act->param[1] ].mode                                         << std::endl;
+    std::cerr << "  Line: "<<act->line                                                                  << std::endl;
+  };
+
+  memcpy(
+    this->handle[ act->param[1] ].value.address,  // To
+    this->handle[ act->param[0] ].value.address,  // From
+    this->handle[ act->param[2] ].read()          // Bytes
+  );
 }
+void Instance::CmdComp     (Action *act){
+  Register *A = &this->handle[ act->param[0] ];
+  Register *B = &this->handle[ act->param[2] ];
+  Register *C = &this->handle[ act->param[3] ];
+
+  switch (A->mode){
+    case uint8:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint8 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint8 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint8 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case int8:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int8 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int8 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int8 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case uint16:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint16 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint16 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint16 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case int16:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int16 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int16 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int16 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case float32:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float32 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float32 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float32 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case uint32:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint32 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint32 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint32 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case int32:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int32 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int32 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int32 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case float64:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.float64 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.float64 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.float64 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case uint64:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.uint64 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.uint64 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.uint64 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+    case int64:
+      switch ( B->mode ){
+        case uint8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.uint8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.uint8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.uint8 ? true : false;
+          }
+
+          return;
+        case int8:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.int8 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.int8 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.int8 ? true : false;
+          }
+
+          return;
+        case uint16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.uint16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.uint16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.uint16 ? true : false;
+          }
+
+          return;
+        case int16:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.int16 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.int16 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.int16 ? true : false;
+          }
+
+          return;
+        case float32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.float32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.float32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.float32 ? true : false;
+          }
+
+          return;
+        case uint32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.uint32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.uint32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.uint32 ? true : false;
+          }
+
+          return;
+        case int32:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.int32 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.int32 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.int32 ? true : false;
+          }
+
+          return;
+        case float64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.float64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.float64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.float64 ? true : false;
+          }
+
+          return;
+        case uint64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.uint64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.uint64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.uint64 ? true : false;
+          }
+
+          return;
+        case int64:
+          switch (static_cast<Comparason>(act->param[1])){
+            case equal:
+              C->value.uint8 = A->value.int64 == B->value.int64 ? true : false;
+            case greater:
+              C->value.uint8 = A->value.int64 > B->value.int64 ? true : false;
+            case less:
+              C->value.uint8 = A->value.int64 < B->value.int64 ? true : false;
+          }
+
+          return;
+      }
+
+      break;
+  }
+}
+void Instance::CmdBit      (Action *act){
+  unsigned long long A;
+  unsigned long long B;
+
+  A = this->handle[ act->param[0] ].value.uint64;
+  
+  if (act->param[2] == 1){
+    B = this->handle[ act->param[3] ].value.uint64;
+  }else{
+    B = act->param[3];
+  }
+
+
+  switch( static_cast<BitOperator>( act->param[1] ) ){
+    case AND:
+      this->handle[ act->param[4] ].value.uint64 = A&B;
+      break;
+    case OR:
+      this->handle[ act->param[4] ].value.uint64 = A|B;
+      break;
+    case XOR:
+      this->handle[ act->param[4] ].value.uint64 = A^B;
+      break;
+    case LeftShift:
+      this->handle[ act->param[4] ].value.uint64 = A << B;
+      break;
+    case RightShift:
+      this->handle[ act->param[4] ].value.uint64 = A >> B;
+      break;
+    case NOT:
+      this->handle[ act->param[4] ].value.uint64 = ~A;
+      break;
+  }
+};
