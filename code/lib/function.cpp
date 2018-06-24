@@ -37,8 +37,6 @@ bool Function::Interpret(Segregate::StrCommands source){
       continue;
     }
 
-    std::cout << "Interp: " << source[i][0] << std::endl;
-
     // Stop
     if (source[i][0] == "stop"){
       this->code[ptr].command = Commands::stop;
@@ -164,7 +162,7 @@ bool Function::Interpret(Segregate::StrCommands source){
 
       this->code[ptr].command = Commands::memory;
       this->code[ptr].line = i+1;
-      this->code[ptr].param.resize(2);
+      this->code[ptr].param.resize(3);
 
       if (source[i][1] == "alloc"){
         this->code[ptr].param[0] = 0;
@@ -485,15 +483,10 @@ bool Function::Interpret(Segregate::StrCommands source){
         continue;
       }
 
-      std::cout << "  +" << std::endl;
       this->code[ptr].command = Commands::compare;
-      std::cout << "  +" << std::endl;
       this->code[ptr].line = i+1;
-      std::cout << "  +" << std::endl;
       this->code[ptr].param.resize(4);
-      std::cout << "  +" << std::endl;
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
-      std::cout << "  +" << std::endl;
       if (this->code[ptr].param[0] == -1){
         std::cerr << "Error: Invalid A register " << source[i][1] << std::endl;
         std::cerr << "  line: " << i+1 << std::endl;
@@ -517,13 +510,13 @@ bool Function::Interpret(Segregate::StrCommands source){
       this->code[ptr].param[2] = GetRegisterID(source[i][3]);
       this->code[ptr].param[3] = GetRegisterID(source[i][4]);
 
-      if (this->code[ptr].param[0] == -1){
+      if (this->code[ptr].param[2] == -1){
         std::cerr << "Error: Invalid B register " << source[i][3] << std::endl;
         std::cerr << "  line: " << i+1 << std::endl;
         error = true;
         continue;
       }
-      if (this->code[ptr].param[0] == -1){
+      if (this->code[ptr].param[3] == -1){
         std::cerr << "Error: Invalid result register " << source[i][4] << std::endl;
         std::cerr << "  line: " << i+1 << std::endl;
         error = true;
@@ -609,15 +602,10 @@ bool Function::Interpret(Segregate::StrCommands source){
         continue;
       }
 
-      std::cout << "  +" << std::endl;
       this->code[ptr].command = Commands::IF;
-      std::cout << "  +" << std::endl;
       this->code[ptr].line = i+1;
-      std::cout << "  +" << std::endl;
       this->code[ptr].param.resize(2);
-      std::cout << "  + " << source[i][1] << std::endl;
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
-      std::cout << "  +" << std::endl;
       // param[1] = jump else statement
 
       if (this->code[ptr].param[0] == -1){
@@ -711,7 +699,7 @@ bool Function::SimplifyIF(){
         this->code[elseLoc].param[1] = j-elseLoc;
 
         // Give the if statement a jump to point for the false condition
-        this->code[i].param[1] = elseLoc-i + 1; // +1: Don't run the else overflow
+        this->code[i].param[1] = elseLoc-i; // +1: Don't run the else overflow
       }else{
         // No else statement, so just skip to the end
         this->code[i].param[1] = j-i;

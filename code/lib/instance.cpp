@@ -14,7 +14,7 @@ void Instance::Execute (int cursor){
   while (cursor < length){
     act = &this->ref->code[cursor];
 
-    std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
+    // std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
 
     switch (act->command){
       case Commands::math:
@@ -350,10 +350,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -361,10 +364,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -372,10 +378,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -383,10 +392,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -394,10 +406,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -405,10 +420,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -416,8 +434,10 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.int32 ? true : false;
           }
@@ -427,21 +447,27 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.float64 ? true : false;
           }
 
           return;
         case uint64:
+
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -449,10 +475,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint8 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint8 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint8 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -465,10 +494,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -476,10 +508,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -487,10 +522,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -498,10 +536,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -509,10 +550,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -520,10 +564,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -531,10 +578,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -542,10 +592,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -553,10 +606,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -564,10 +620,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int8 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int8 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int8 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -580,10 +639,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -591,10 +653,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -602,10 +667,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -613,8 +681,10 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.int16 ? true : false;
           }
@@ -624,10 +694,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -635,10 +708,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -646,10 +722,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -657,10 +736,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -668,10 +750,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -679,10 +764,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint16 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint16 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint16 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -695,10 +783,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -706,10 +797,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -717,10 +811,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -728,10 +825,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -739,10 +839,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -750,10 +853,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -761,10 +867,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -772,10 +881,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -783,10 +895,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -794,10 +909,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int16 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int16 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int16 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -810,10 +928,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -821,10 +942,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -832,10 +956,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -843,10 +970,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -854,10 +984,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -865,10 +998,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -876,10 +1012,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -887,10 +1026,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -898,10 +1040,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -909,10 +1054,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float32 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float32 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float32 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -925,10 +1073,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -936,10 +1087,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -947,10 +1101,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -958,10 +1115,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -969,10 +1129,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -980,10 +1143,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -991,10 +1157,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -1002,10 +1171,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -1013,10 +1185,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -1024,10 +1199,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint32 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint32 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint32 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -1040,10 +1218,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -1051,10 +1232,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -1062,10 +1246,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -1073,10 +1260,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -1084,10 +1274,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -1095,10 +1288,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -1106,10 +1302,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -1117,10 +1316,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -1128,10 +1330,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -1139,10 +1344,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int32 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int32 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int32 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -1155,10 +1363,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -1166,10 +1377,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -1177,10 +1391,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -1188,10 +1405,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -1199,10 +1419,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -1210,10 +1433,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -1221,10 +1447,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -1232,10 +1461,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -1243,10 +1475,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -1254,10 +1489,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.float64 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.float64 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.float64 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -1270,10 +1508,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -1281,10 +1522,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -1292,10 +1536,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -1303,10 +1550,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.int16 ? true : false;
+              break; 
             case less:
               C->value.uint8 = A->value.uint64 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -1314,10 +1564,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -1325,10 +1578,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -1336,10 +1592,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -1347,10 +1606,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -1358,10 +1620,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -1369,10 +1634,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.uint64 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -1385,10 +1653,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.uint8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.uint8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.uint8 ? true : false;
+              break;
           }
 
           return;
@@ -1396,10 +1667,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.int8 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.int8 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.int8 ? true : false;
+              break;
           }
 
           return;
@@ -1407,10 +1681,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.uint16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.uint16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.uint16 ? true : false;
+              break;
           }
 
           return;
@@ -1418,10 +1695,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.int16 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.int16 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.int16 ? true : false;
+              break;
           }
 
           return;
@@ -1429,10 +1709,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.float32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.float32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.float32 ? true : false;
+              break;
           }
 
           return;
@@ -1440,10 +1723,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.uint32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.uint32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.uint32 ? true : false;
+              break;
           }
 
           return;
@@ -1451,10 +1737,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.int32 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.int32 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.int32 ? true : false;
+              break;
           }
 
           return;
@@ -1462,10 +1751,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.float64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.float64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.float64 ? true : false;
+              break;
           }
 
           return;
@@ -1473,10 +1765,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.uint64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.uint64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.uint64 ? true : false;
+              break;
           }
 
           return;
@@ -1484,10 +1779,13 @@ void Instance::CmdComp     (Action *act){
           switch (static_cast<Comparason>(act->param[1])){
             case equal:
               C->value.uint8 = A->value.int64 == B->value.int64 ? true : false;
+              break;
             case greater:
               C->value.uint8 = A->value.int64 > B->value.int64 ? true : false;
+              break;
             case less:
               C->value.uint8 = A->value.int64 < B->value.int64 ? true : false;
+              break;
           }
 
           return;
@@ -1495,6 +1793,12 @@ void Instance::CmdComp     (Action *act){
 
       break;
   }
+
+  std::cerr << "Error: Unexpected error, unhandled type comparason case" << std::endl;
+  std::cerr << "  A: " << A->mode << std::endl;
+  std::cerr << "  B: " << B->mode << std::endl;
+  std::cerr << "  C: " << C->mode << std::endl;
+  std::cerr << "  line: " << act->line;
 }
 void Instance::CmdBit      (Action *act){
   unsigned long long A;

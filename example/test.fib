@@ -14,6 +14,8 @@
   # The character[4] being written to the string
   mode rD uint32
 
+  mode rE uint64
+
 
 # Construct string
   # Define the length of the string
@@ -23,8 +25,8 @@
   mem alloc rA rC
 
 
-compare rB > 128 rB
-
+set rE 50
+compare rB > rE rB
 if rB
   # Build string 'Yes'
   set rD 736559
@@ -40,4 +42,4 @@ endif
 
 
 # Cleanup (optional)
-  mem unalloc rA rC
+#  mem unalloc rA rC
