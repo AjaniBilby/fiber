@@ -518,7 +518,7 @@ int GetRegisterID(std::string str){
 
   if (str[0] != 'r'){
     return -1;
-  }
+  };
   
   switch (str[1]){
     case 'A':
@@ -545,7 +545,7 @@ int GetRegisterID(std::string str){
       return 10;
     case 'L':
       return 11;
-  }
+  };
   
   return -1;
 };

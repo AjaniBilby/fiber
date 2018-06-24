@@ -32,3 +32,5 @@
 *.app
 
 # Fiber
+*.fib
+!code/example/*
