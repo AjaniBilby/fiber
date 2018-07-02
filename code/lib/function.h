@@ -24,26 +24,49 @@
 
 
 enum Commands {
-  invalid,       // Keep invalid and stop seperate
-  stop,          // so that unset commands can still be detected
-  set,           // Change the value of a register
+  invalid,       // Unexpected Zero
+  blank,         // Intensionally empty space
+
+  // Memory movement
   memory,
-  standardStream,
   push,
   pull,
-  mode,
+
+  // Std io
+  standardStream,
+  
+  // Register actions
   translate,
-  math,
+  mode,
   copy,
   move,
+  set,
+
+  // Calcuations
+  bitwise,
+  math,
+
+  // Comparators
+  longCompare,
   compare,
-  jump,
 
-  IF,
-  ELSE,
-  ENDIF,
+  // Scheduling
+  // Suspend,
 
-  blank
+  // Flow Control
+    Continue,
+    Break,
+    jump,
+    stop,
+    END,
+
+    // If statement
+    IF,
+    ELSE,
+
+    Loop,
+
+    Switch,
 };
 
 enum MathOpperation {
@@ -95,6 +118,7 @@ class Function{
   private:
     bool Interpret(Segregate::StrCommands source);
     bool SimplifyIF();
+    bool SimplifyLoop();
 };
 
 

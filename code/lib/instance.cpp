@@ -76,10 +76,17 @@ void Instance::Execute (int cursor){
       case Commands::invalid:
         std::cerr << "Warn: Unexpected invalid command" << std::endl;
         std::cerr << "  line: " << act->line << std::endl;
-      default:
-        std::cerr << "Warn: Unknown command " << act->command << std::endl;
-        std::cerr << "  line: " << act->line << std::endl;
         break;
+      case Commands::longCompare:
+        this->CmdLComp(act);
+        break;
+      case Commands::bitwise:
+        this->CmdBit(act);
+        break;
+      // default:
+      //   std::cerr << "Warn: Unknown command " << act->command << std::endl;
+      //   std::cerr << "  line: " << act->line << std::endl;
+      //   break;
     }
 
     cursor += 1;
@@ -1834,3 +1841,52 @@ void Instance::CmdBit      (Action *act){
       break;
   }
 };
+void Instance::CmdLComp    (Action *act){
+  Address T;
+  T.h = this->handle[ act->param[0] ].value.address;
+  char *A = T.c;
+  T.h = this->handle[ act->param[2] ].value.address;
+  char *B = T.c;
+
+  unsigned long length = act->param[2];
+
+  // Little edian
+  if (act->param[4] == 0){
+    A += length;
+    B += length;
+
+    while (length > 0){
+      if (A > B){
+        this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::greater);
+
+        return;
+      }else if (A < B){
+
+        this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::less);
+        return;
+      }
+
+      length -= 1;
+      A--;
+      B--;
+    }
+
+    this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::equal);
+  }else{
+    while (length > 0){
+      if (A > B){
+        this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::greater);
+        return;
+      }else if (A < B){
+        this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::less);
+        return;
+      }
+
+      length -= 1;
+      A++;
+      B++;
+    }
+
+    this->handle[ act->param[5] ].value.uint8 = (act->param[1] == Comparason::equal);
+  }
+}

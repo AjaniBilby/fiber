@@ -43,6 +43,7 @@ class Instance{
     void CmdCopy(Action *act);
     void CmdMove(Action *act);
     void CmdComp(Action *act);
+    void CmdLComp(Action *act);
     void CmdBit(Action *act);
 };
 

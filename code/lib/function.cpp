@@ -527,6 +527,80 @@ bool Function::Interpret(Segregate::StrCommands source){
       continue;
     }
 
+    // Compare two chunks of bytes
+    if (source[i][0] == "lcompare"){
+      if (source[i].size() < 5){
+        std::cerr << "Error: Not enough arguments supplied" << std::endl;
+        std::cerr << "  line: "<< i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      this->code[ptr].command = Commands::compare;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(6);
+      this->code[ptr].param[0] = GetRegisterID(source[i][1]);
+      if (this->code[ptr].param[0] == -1){
+        std::cerr << "Error: Invalid A register " << source[i][1] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      if       (source[i][2] == "="){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::equal);
+      }else if (source[i][2] == ">"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::greater);
+      }else if (source[i][2] == "<"){
+        this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::less);
+      }else{
+        std::cerr << "Error: Invalid comparason operation \""<< source[i][2] << "\"" <<std::endl;
+        std::cerr << "  Line: "<<i<<std::endl;
+        error = true;
+        continue;
+      }
+
+      this->code[ptr].param[2] = GetRegisterID(source[i][3]);
+      this->code[ptr].param[3] = GetRegisterID(source[i][4]);
+
+      if (this->code[ptr].param[2] == -1){
+        std::cerr << "Error: Invalid B register " << source[i][3] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+      if (this->code[ptr].param[3] == -1){
+        std::cerr << "Error: Invalid result register " << source[i][4] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+
+      if (source[i][5] == "little"){
+        this->code[ptr].param[4] = 0;
+      }else if (source[i][5] == "big"){
+        this->code[ptr].param[4] = 1;
+      }else
+        std::cerr << "Error: Invalid edianess; " << source[i][5] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+
+      this->code[ptr].param[5] = GetRegisterID(source[i][4]);
+      if (this->code[ptr].param[5] == -1){
+        std::cerr << "Error: Invalid length register " << source[i][5] << std::endl;
+        std::cerr << "  line: " << i+1 << std::endl;
+        error = true;
+        continue;
+      }
+
+      ptr++;
+      continue;
+    }
+
     // Bitwise operations
     if (source[i][0] == "bit"){
       if (source[i].size() < 5){
@@ -536,7 +610,7 @@ bool Function::Interpret(Segregate::StrCommands source){
         continue;
       }
 
-      this->code[ptr].command = Commands::compare;
+      this->code[ptr].command = Commands::bitwise;
       this->code[ptr].line = i+1;
       this->code[ptr].param.resize(5);
 
@@ -625,8 +699,8 @@ bool Function::Interpret(Segregate::StrCommands source){
       ptr++;
       continue;
     }
-    if (source[i][0] == "endif"){
-      this->code[ptr].command = Commands::ENDIF;
+    if (source[i][0] == "end"){
+      this->code[ptr].command = Commands::END;
       this->code[ptr].line = i+1;
       this->code[ptr].param.resize(0);
 
@@ -634,10 +708,41 @@ bool Function::Interpret(Segregate::StrCommands source){
       continue;
     }
 
+    // Flow Navigation
+    if (source[i][0] == "break"){
+      this->code[ptr].command = Commands::Break;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(0);
+      // param[0] = distance to loop/switch end (command num)
 
+      ptr++;
+      continue;
+    }
+    if (source[i][0] == "continue"){
+      this->code[ptr].command = Commands::Continue;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(0);
+      // param[0] = distance to loop beginning (command num)
+
+      ptr++;
+      continue;
+    }
+
+
+    // Loop statement
+    if (source[i][0] == "loop"){
+      this->code[ptr].command = Commands::Loop;
+      this->code[ptr].line = i+1;
+      this->code[ptr].param.resize(1);
+      // param[0] = distance to loop end (command num)
+
+      ptr++;
+      continue;
+    }
+    
 
     std::cerr << "Error: Invalid Command '" << source[i][0] << "'"<<std::endl;
-    std::cerr << "  Line: "<<i<<std::endl;
+    std::cerr << "  Line: "<<i+1<<std::endl;
     error = true;
   }
 
@@ -671,7 +776,11 @@ bool Function::SimplifyIF(){
 
       // Find the extra statements
       for (j=0; j<length; j++){
-        if (this->code[j].command == Commands::IF){
+        if (
+          this->code[j].command == Commands::IF ||
+          this->code[j].command == Commands::Loop ||
+          this->code[j].command == Commands::Switch
+        ){
           depth += 1;
         }
 
@@ -680,7 +789,7 @@ bool Function::SimplifyIF(){
           hasElse = true;
         }
 
-        if (this->code[j].command == Commands::ENDIF){
+        if (this->code[j].command == Commands::END){
           depth -= 1;
 
           if (depth == 0){
@@ -708,6 +817,135 @@ bool Function::SimplifyIF(){
     }
 
   }
+
+  return true;
+};
+
+bool Function::SimplifyLoop(){
+  unsigned long length = this->code.size();
+  unsigned long depth = 0;
+  bool found = false;
+
+  // Specify loops with their lengths
+  // Make loop endpoints wrap
+  for (unsigned long i=0; i<length; i++){
+    if (this->code[i].command == Commands::Loop){
+      depth = 1;
+      found = false;
+
+      for (unsigned long j=0; j<length; j++){
+
+        // Ensure depth
+        if (
+          this->code[j].command == Commands::IF ||
+          this->code[j].command == Commands::Loop ||
+          this->code[j].command == Commands::Switch
+        ){
+          depth += 1;
+          continue;
+        }
+        
+
+        if (this->code[j].command == Commands::END){
+          depth -= 1;
+        }
+
+        if (depth == 0){
+          this->code[i].param[0] = j-i;
+
+          // Change the end mark of the while loop
+          // To a backwards jump to continue the loop
+          this->code[j].command = Commands::jump;
+          this->code[j].param.resize(2);
+          this->code[j].param[0] = 0;
+          this->code[j].param[1] = this->code[i].param[0];
+          found = true;
+
+          break;
+        }
+      }
+
+      if (!found){
+        std::cerr << "Error: Missing loop endpoint"<<std::endl;
+        std::cerr << "  Line: "<<this->code[i].line<<std::endl;
+        return false;
+      }
+    }
+  }
+
+  // Bind continue command
+  for (unsigned long i=0; i<length; i++){
+    if (this->code[i].command == Commands::Continue){
+      depth = this->code[i].param[0];
+      found = false;
+
+      for (long j=i-1; j>=0; j--){
+
+        // Change of depth
+        //   Note: Switch statements don't have 'continue'
+        if(
+          this->code[j].command == Commands::Loop  &&
+          this->code[j].param[0] >= i-j               // Loop covers keyword
+        ){
+          depth -= 1;
+        }
+
+        if (depth == 0){
+          this->code[i].command = Commands::jump;
+          this->code[i].param.resize(2);
+          this->code[i].param[0] = 0;
+          this->code[i].param[1] = i-j;
+          found = true;
+
+          break;
+        }
+      }
+
+      if (!found){
+        std::cerr << "Error: Failed to find loop with correct depth for continue statement (" << this->code[i].param[0] << ")"<<std::endl;
+        std::cerr << "  Line: "<<this->code[i].line<<std::endl;
+        return false;
+      }
+    }
+  }
+
+  // Bind break command
+  for (unsigned long i=0; i<length; i++){
+    if (this->code[i].command == Commands::Break){
+      depth = this->code[i].param[0];
+      found = false;
+
+      for (long j=i-1; j>=0; j--){
+
+        // Change of depth
+        if (this->code[j].command == Commands::Switch){
+          depth -= 1;
+        }else if(
+          this->code[j].command == Commands::Loop  &&
+          this->code[j].param[0] >= i-j               // Loop covers keyword
+        ){
+          depth -= 1;
+        }
+
+        if (depth == 0){
+          this->code[i].command = Commands::jump;
+          this->code[i].param.resize(2);
+          this->code[i].param[0] = 0;
+          this->code[i].param[1] = this->code[j].param[0] - (j - i);
+          found = true;
+
+          break;
+        }
+      }
+
+      if (!found){
+        std::cerr << "Error: Failed to find loop with correct depth for break statement (" << this->code[i].param[0] << ")"<<std::endl;
+        std::cerr << "  Line: "<<this->code[i].line<<std::endl;
+        return false;
+      }
+    }
+  }
+
 
   return true;
 };
