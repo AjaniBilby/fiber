@@ -5,7 +5,7 @@
 #include <thread>
 #include <atomic>
 
-#include "instance.cpp"
+#include "instance.h"
 
 namespace Thread{
   class Invoice{
@@ -48,4 +48,5 @@ namespace Thread{
   void Init();
 }
 
+#include "thread.cpp"
 #endif

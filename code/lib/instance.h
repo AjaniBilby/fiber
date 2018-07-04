@@ -7,8 +7,9 @@
 */
 
 
-#include "function.cpp"
-#include "thread.cpp"
+#include "function.h"
+#include "thread.h"
+#include "memory.h"
 
 #include <vector>
 #include <string>
@@ -48,4 +49,6 @@ class Instance{
     void CmdBit(Action *act);
 };
 
+
+#include "instance.cpp"
 #endif

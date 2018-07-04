@@ -13,11 +13,10 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <memory>
 #include <cmath>
 
-#include "register.cpp"
-#include "segregate.cpp"
+#include "register.h"
+#include "segregate.h"
 
 
 
@@ -126,4 +125,6 @@ class Function{
 
 bool ValidTypeSizing();
 
+
+#include "function.cpp"
 #endif

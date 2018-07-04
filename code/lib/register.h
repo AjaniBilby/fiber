@@ -8,7 +8,7 @@
 #include <cmath>
 
 
-#include "hexidecimal.cpp"
+#include "hexidecimal.h"
 
 
 
@@ -17,7 +17,7 @@
 
 
 union Handle {
-  Handle *address;
+  void *address;
 
   char int8;
   unsigned char uint8;
@@ -64,14 +64,5 @@ class Register{
 int GetRegisterID(std::string str);
 
 
-
-
-
-// For converting between address types
-union Address {
-  char *c;
-  Handle *h;
-};
-
-
+#include "register.cpp"
 #endif

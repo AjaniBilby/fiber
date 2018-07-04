@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 
-#include "./lib/thread.cpp"
+#include "./lib/thread.h"
 
 #define FIBER_VERSION "v0.0.1a"
 bool FLAG_TIME = false;

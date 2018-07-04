@@ -19,4 +19,6 @@ namespace Segregate {
   StrCommands Fragment(std::string str);
 }
 
+
+#include "segregate.cpp"
 #endif

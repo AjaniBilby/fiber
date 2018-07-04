@@ -110,7 +110,6 @@ void Instance::CmdSS        (Action *act){
   std::vector<char> bytes;
   unsigned long count;
   std::string str;
-  Address ptr;
 
   if (this->handle[ act->param[1] ].mode != RegisterMode::uint64){
     std::cerr << "Warn: Attempting to use standard stream with an address register of non-uint64 mode" << std::endl;
@@ -132,20 +131,20 @@ void Instance::CmdSS        (Action *act){
     //   (Won't get destroyed after function call)
     // Store the information about the space in the 
     // two specified registers
-    this->handle[ act->param[1] ].value.address = (Handle *) malloc ( count );
+    this->handle[ act->param[1] ].value.address = Memory::Allocate ( count );
     this->handle[ act->param[2] ].write(count);
 
     // Move the data to the space space
-    memcpy(this->handle[ act->param[1] ].value.address, &str, count );
+    Memory::Duplicate(this->handle[ act->param[1] ].value.address, &str, count );
 
   }else{
     count = this->handle[ act->param[2] ].read();
-    ptr.h = this->handle[ act->param[1] ].value.address;
+    char *ptr = static_cast<char* >(this->handle[ act->param[1] ].value.address);
 
     bytes.resize(count);
 
     for (unsigned long i=0; i<count; i++){
-      bytes[i] = *(ptr.c + i);
+      bytes[i] = *(ptr + i);
     }
 
     std::string str(bytes.begin(), bytes.end());
@@ -170,14 +169,14 @@ void Instance::CmdMem       (Action *act){
   }
 
   if (act->param[0] == 0){
-    this->handle[ act->param[1] ].value.address = (Handle *) malloc ( this->handle[ act->param[2] ].read() );
+    this->handle[ act->param[1] ].value.address = Memory::Allocate ( this->handle[ act->param[2] ].read() );
   }else{
-    free ( this->handle[ act->param[1] ].value.address );
+    Memory::UnAllocate ( this->handle[ act->param[1] ].value.address );
   }
 };
 void Instance::CmdPush      (Action *act){
   Handle *director;
-  director = this->handle[ act->param[1] ].value.address;
+  director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
 
   switch (this->handle[ act->param[0] ].mode){
     case RegisterMode::int8:
@@ -205,7 +204,7 @@ void Instance::CmdPush      (Action *act){
 };
 void Instance::CmdPull      (Action *act){
   Handle *director;
-  director = this->handle[ act->param[1] ].value.address;
+  director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
 
   switch (this->handle[ act->param[0] ].mode){
     case RegisterMode::int8:
@@ -339,7 +338,7 @@ void Instance::CmdMove      (Action *act){
     std::cerr << "  Line: "<<act->line                                                                  << std::endl;
   };
 
-  memcpy(
+  Memory::Duplicate(
     this->handle[ act->param[1] ].value.address,  // To
     this->handle[ act->param[0] ].value.address,  // From
     this->handle[ act->param[2] ].read()          // Bytes
@@ -1842,11 +1841,8 @@ void Instance::CmdBit       (Action *act){
   }
 };
 void Instance::CmdLComp     (Action *act){
-  Address T;
-  T.h = this->handle[ act->param[0] ].value.address;
-  char *A = T.c;
-  T.h = this->handle[ act->param[2] ].value.address;
-  char *B = T.c;
+  char *A = static_cast<char *>( this->handle[ act->param[0] ].value.address );
+  char *B = static_cast<char *>( this->handle[ act->param[2] ].value.address );
 
   unsigned long length = act->param[2];
 

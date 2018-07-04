@@ -16,4 +16,5 @@ namespace Hexidecimal {
 }
 
 
+#include "hexidecimal.cpp"
 #endif

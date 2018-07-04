@@ -18,7 +18,7 @@ Function::Function(std::string name, int size){
   this->name = name;
   this->size = size;
 }
-bool Function::Interpret(Segregate::StrCommands source){  
+bool Function::Interpret(Segregate::StrCommands source){
   unsigned int codeLen = source.size();
   this->code.resize( codeLen );
 
@@ -534,18 +534,18 @@ bool Function::Interpret(Segregate::StrCommands source){
     if (source[i][0] == "lcompare"){
       if (source[i].size() < 5){
         std::cerr << "Error: Not enough arguments supplied" << std::endl;
-        std::cerr << "  line: "<< i+1 << std::endl;
+        std::cerr << "  line: "<< this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
 
       this->code[ptr].command = Commands::compare;
-      this->code[ptr].line = i+1;
+      this->code[ptr].line = (i+1);
       this->code[ptr].param.resize(6);
       this->code[ptr].param[0] = GetRegisterID(source[i][1]);
       if (this->code[ptr].param[0] == -1){
         std::cerr << "Error: Invalid A register " << source[i][1] << std::endl;
-        std::cerr << "  line: " << i+1 << std::endl;
+        std::cerr << "  line: " << this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
@@ -558,7 +558,7 @@ bool Function::Interpret(Segregate::StrCommands source){
         this->code[ptr].param[1] = static_cast<unsigned long long>(Comparason::less);
       }else{
         std::cerr << "Error: Invalid comparason operation \""<< source[i][2] << "\"" <<std::endl;
-        std::cerr << "  Line: "<<i<<std::endl;
+        std::cerr << "  Line: "<< this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
@@ -568,13 +568,13 @@ bool Function::Interpret(Segregate::StrCommands source){
 
       if (this->code[ptr].param[2] == -1){
         std::cerr << "Error: Invalid B register " << source[i][3] << std::endl;
-        std::cerr << "  line: " << i+1 << std::endl;
+        std::cerr << "  line: " << this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
       if (this->code[ptr].param[3] == -1){
         std::cerr << "Error: Invalid result register " << source[i][4] << std::endl;
-        std::cerr << "  line: " << i+1 << std::endl;
+        std::cerr << "  line: " << this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
@@ -584,9 +584,9 @@ bool Function::Interpret(Segregate::StrCommands source){
         this->code[ptr].param[4] = 0;
       }else if (source[i][5] == "big"){
         this->code[ptr].param[4] = 1;
-      }else
+      }else{
         std::cerr << "Error: Invalid edianess; " << source[i][5] << std::endl;
-        std::cerr << "  line: " << i+1 << std::endl;
+        std::cerr << "  line: " << this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
@@ -595,7 +595,7 @@ bool Function::Interpret(Segregate::StrCommands source){
       this->code[ptr].param[5] = GetRegisterID(source[i][4]);
       if (this->code[ptr].param[5] == -1){
         std::cerr << "Error: Invalid length register " << source[i][5] << std::endl;
-        std::cerr << "  line: " << i+1 << std::endl;
+        std::cerr << "  line: " << this->code[ptr].line << std::endl;
         error = true;
         continue;
       }
