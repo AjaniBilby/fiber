@@ -42,4 +42,4 @@ endif
 
 
 # Cleanup (optional)
-#  mem unalloc rA rC
+mem unalloc rA rC

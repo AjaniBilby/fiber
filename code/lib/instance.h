@@ -8,6 +8,7 @@
 
 
 #include "function.cpp"
+#include "thread.cpp"
 
 #include <vector>
 #include <string>

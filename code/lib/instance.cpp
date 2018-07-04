@@ -83,10 +83,10 @@ void Instance::Execute (int cursor){
       case Commands::bitwise:
         this->CmdBit(act);
         break;
-      // default:
-      //   std::cerr << "Warn: Unknown command " << act->command << std::endl;
-      //   std::cerr << "  line: " << act->line << std::endl;
-      //   break;
+      default:
+        std::cerr << "Warn: Unknown command " << act->command << std::endl;
+        std::cerr << "  line: " << act->line << std::endl;
+        break;
     }
 
     cursor += 1;
@@ -320,14 +320,14 @@ void Instance::CmdMath      (Action *act){
       break;
   }
 };
-void Instance::CmdCopy     (Action *act){
+void Instance::CmdCopy      (Action *act){
   Register *A = &this->handle[ act->param[0] ];
   Register *B = &this->handle[ act->param[1] ];
 
   B->mode = A->mode;
   B->write( A->read() );
 };
-void Instance::CmdMove     (Action *act){
+void Instance::CmdMove      (Action *act){
   if (this->handle[ act->param[0] ].mode != RegisterMode::uint64){
     std::cerr << "Warn: Attempting to move data using a register for the from address not in uint64 mode" << std::endl;
     std::cerr << "  Mode: "<<this->handle[ act->param[0] ].mode                                           << std::endl;
@@ -345,7 +345,7 @@ void Instance::CmdMove     (Action *act){
     this->handle[ act->param[2] ].read()          // Bytes
   );
 }
-void Instance::CmdComp     (Action *act){
+void Instance::CmdComp      (Action *act){
   Register *A = &this->handle[ act->param[0] ];
   Register *B = &this->handle[ act->param[2] ];
   Register *C = &this->handle[ act->param[3] ];
@@ -1807,7 +1807,7 @@ void Instance::CmdComp     (Action *act){
   std::cerr << "  C: " << C->mode << std::endl;
   std::cerr << "  line: " << act->line;
 }
-void Instance::CmdBit      (Action *act){
+void Instance::CmdBit       (Action *act){
   unsigned long long A;
   unsigned long long B;
 
@@ -1841,7 +1841,7 @@ void Instance::CmdBit      (Action *act){
       break;
   }
 };
-void Instance::CmdLComp    (Action *act){
+void Instance::CmdLComp     (Action *act){
   Address T;
   T.h = this->handle[ act->param[0] ].value.address;
   char *A = T.c;

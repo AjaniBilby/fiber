@@ -36,6 +36,9 @@ bool Function::Interpret(Segregate::StrCommands source){
     if (source[i][0] == "#"){
       continue;
     }
+    if (source[i][0] == ";"){
+      continue;
+    }
 
     // Stop
     if (source[i][0] == "stop"){
