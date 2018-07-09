@@ -55,7 +55,7 @@ enum Commands {
   // Flow Control
     Continue,
     Break,
-    jump,
+    GOTO,
     stop,
     END,
 
@@ -63,9 +63,7 @@ enum Commands {
     IF,
     ELSE,
 
-    Loop,
-
-    Switch,
+    Loop
 };
 
 enum MathOpperation {
@@ -118,6 +116,7 @@ class Function{
     bool Interpret(Segregate::StrCommands source);
     bool SimplifyIF();
     bool SimplifyLoop();
+    bool CheckBlockEndPoints();
 };
 
 

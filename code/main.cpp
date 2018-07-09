@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
   // Mount the data into a function tree
   Function entry ("_root_",0);
   if (entry.Parse( Segregate::Fragment(fileData) ) == false){
-    std::cerr << "Error: Failed to interprete" << std::endl;
+    std::cerr << "Error: Failed to interpret" << std::endl;
   }else{
     // Start execution
     Instance root(&entry, nullptr);

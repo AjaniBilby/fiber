@@ -715,8 +715,13 @@ bool Function::Interpret(Segregate::StrCommands source){
     if (source[i][0] == "break"){
       this->code[ptr].command = Commands::Break;
       this->code[ptr].line = i+1;
-      this->code[ptr].param.resize(0);
-      // param[0] = distance to loop/switch end (command num)
+      this->code[ptr].param.resize(1);
+
+      if (source[i].size() > 1){
+        this->code[ptr].param[0] = Hexidecimal::convert(source[i][1]);
+      }else{
+        this->code[ptr].param[0] = 0;
+      }
 
       ptr++;
       continue;
@@ -724,8 +729,14 @@ bool Function::Interpret(Segregate::StrCommands source){
     if (source[i][0] == "continue"){
       this->code[ptr].command = Commands::Continue;
       this->code[ptr].line = i+1;
-      this->code[ptr].param.resize(0);
+      this->code[ptr].param.resize(1);
       // param[0] = distance to loop beginning (command num)
+
+      if (source[i].size() > 1){
+        this->code[ptr].param[0] = Hexidecimal::convert(source[i][1]);
+      }else{
+        this->code[ptr].param[0] = 0;
+      }
 
       ptr++;
       continue;
@@ -765,6 +776,7 @@ bool Function::Interpret(Segregate::StrCommands source){
 bool Function::SimplifyIF(){
   unsigned int elseLoc;  // Where the Else clause starts
   bool hasElse;          // Does the statement have an else clause
+  bool hasEnd;
 
   unsigned int depth = 0; // Ignore inner IF content while scanning for else/endif
 
@@ -774,17 +786,18 @@ bool Function::SimplifyIF(){
   for (i=0; i<length; i++){
 
     if (this->code[i].command == Commands::IF){
-      depth = 0;
+      depth = 1;
       hasElse = false;
+      hasEnd = false;
 
       // Find the extra statements
-      for (j=0; j<length; j++){
-        if (
-          this->code[j].command == Commands::IF ||
-          this->code[j].command == Commands::Loop ||
-          this->code[j].command == Commands::Switch
+      for (j=i+1; j<length; j++){
+        if ( 
+          this->code[j].command == Commands::IF
+          // Loop already simplied and removed 'end' commands
         ){
           depth += 1;
+          continue;
         }
 
         if (this->code[j].command == Commands::ELSE){
@@ -796,25 +809,31 @@ bool Function::SimplifyIF(){
           depth -= 1;
 
           if (depth == 0){
+            hasEnd = true;
             break;
           }
         }
       }
 
+      if (hasEnd == false){
+        return false;
+      }
+
       // How far to skip on the false statement
+      this->code[i].param.resize(1);
       if (hasElse){
         // Has an else statement,
 
         // So ensure that the true statement will not overflow in to the else
-        this->code[elseLoc].command = Commands::jump;
-        this->code[elseLoc].param[0] = 1;
-        this->code[elseLoc].param[1] = j-elseLoc;
+        this->code[elseLoc].command = Commands::GOTO;
+        this->code[elseLoc].param.resize(1);
+        this->code[elseLoc].param[0] = j;
 
         // Give the if statement a jump to point for the false condition
-        this->code[i].param[1] = elseLoc-i; // +1: Don't run the else overflow
+        this->code[i].param[1] = elseLoc;
       }else{
         // No else statement, so just skip to the end
-        this->code[i].param[1] = j-i;
+        this->code[i].param[1] = j;
       }
       this->code[j].command = Commands::blank;
     }
@@ -836,35 +855,36 @@ bool Function::SimplifyLoop(){
       depth = 1;
       found = false;
 
-      for (unsigned long j=0; j<length; j++){
+      for (unsigned long j=i+1; j<length; j++){
 
         // Ensure depth
-        if (
-          this->code[j].command == Commands::IF ||
+        if ( 
           this->code[j].command == Commands::Loop ||
-          this->code[j].command == Commands::Switch
+          this->code[j].command == Commands::IF
         ){
           depth += 1;
           continue;
-        }
-        
+        }        
 
         if (this->code[j].command == Commands::END){
           depth -= 1;
-        }
 
-        if (depth == 0){
-          this->code[i].param[0] = j-i;
+          if (depth == 0){
+            this->code[i].param[0] = j-i;
 
-          // Change the end mark of the while loop
-          // To a backwards jump to continue the loop
-          this->code[j].command = Commands::jump;
-          this->code[j].param.resize(2);
-          this->code[j].param[0] = 0;
-          this->code[j].param[1] = this->code[i].param[0];
-          found = true;
+            // Change the end mark of the while loop
+            // To a backwards jump to continue the loop
+            this->code[j].command = Commands::GOTO;
+            this->code[j].param.resize(1);
+            this->code[j].param[0] = i;
 
-          break;
+            // Assign loop length (for breaks)
+            this->code[i].param[0] = j+1;
+
+            found = true;
+
+            break;
+          }
         }
       }
 
@@ -879,25 +899,24 @@ bool Function::SimplifyLoop(){
   // Bind continue command
   for (unsigned long i=0; i<length; i++){
     if (this->code[i].command == Commands::Continue){
-      depth = this->code[i].param[0];
+      depth = this->code[i].param[0] + 1;
       found = false;
 
+      // Find the n-th previous loop command
       for (long j=i-1; j>=0; j--){
 
         // Change of depth
-        //   Note: Switch statements don't have 'continue'
         if(
           this->code[j].command == Commands::Loop  &&
-          this->code[j].param[0] >= i-j               // Loop covers keyword
+          this->code[j].param[0] >= i-j                // Loop covers the target
         ){
           depth -= 1;
         }
 
         if (depth == 0){
-          this->code[i].command = Commands::jump;
-          this->code[i].param.resize(2);
-          this->code[i].param[0] = 0;
-          this->code[i].param[1] = i-j;
+          this->code[i].command = Commands::GOTO;
+          this->code[i].param.resize(1);
+          this->code[i].param[0] = j;
           found = true;
 
           break;
@@ -915,26 +934,25 @@ bool Function::SimplifyLoop(){
   // Bind break command
   for (unsigned long i=0; i<length; i++){
     if (this->code[i].command == Commands::Break){
-      depth = this->code[i].param[0];
+      depth = this->code[i].param[0] + 1;
       found = false;
 
+      // Find the n-th previous loop command
       for (long j=i-1; j>=0; j--){
 
         // Change of depth
-        if (this->code[j].command == Commands::Switch){
-          depth -= 1;
-        }else if(
+        if(
           this->code[j].command == Commands::Loop  &&
-          this->code[j].param[0] >= i-j               // Loop covers keyword
+          this->code[j].param[0] >= i-j                // Loop covers the target
         ){
           depth -= 1;
         }
 
         if (depth == 0){
-          this->code[i].command = Commands::jump;
-          this->code[i].param.resize(2);
-          this->code[i].param[0] = 0;
-          this->code[i].param[1] = this->code[j].param[0] - (j - i);
+
+          this->code[i].command = Commands::GOTO;
+          this->code[i].param.resize(1);
+          this->code[i].param[0] = this->code[j].param[0];
           found = true;
 
           break;
@@ -952,10 +970,44 @@ bool Function::SimplifyLoop(){
 
   return true;
 };
+bool Function::CheckBlockEndPoints(){
+  long count = 0;
+  unsigned int length = this->code.size();
+  for (int i=0; i<length; i++){
+    if (this->code[i].command == Commands::END){
+      count -= 1;
+    }else if (
+      this->code[i].command == Commands::IF ||
+      this->code[i].command == Commands::Loop
+    ){
+      count += 1;
+    }
+
+    if (count < 0){
+      std::cerr << "Error: Unexpected block ending" << std::endl;
+      std::cerr << "  line: " << this->code[i].line << std::endl;
+      return false;
+    }
+  }
+
+  if (count != 0){
+    std::cerr << "Error: Blocks are missing endpoints" << std::endl;
+    std::cerr << "  over-flow: " << count << std::endl;
+    return false;
+  }else{
+    return true;
+  }
+}
 
 
 bool Function::Parse(Segregate::StrCommands src){
+  if (this->CheckBlockEndPoints() == false){
+    return false;
+  }
   if (this->Interpret(src) == false){
+    return false;
+  }
+  if (this->SimplifyLoop() == false){
     return false;
   }
   if (this->SimplifyIF() == false){

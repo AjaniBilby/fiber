@@ -55,19 +55,15 @@ void Instance::Execute (int cursor){
 
       case Commands::IF:
         if (this->handle[ act->param[0] ].value.uint8 != 1){
-          cursor += act->param[1];
+          cursor = act->param[1];
         }
         break;
 
       case Commands::blank:
         break;
 
-      case Commands::jump:
-        if (act->param[0] == 1){
-          cursor += act->param[1];
-        }else{
-          cursor -= act->param[1] -1;
-        }
+      case Commands::GOTO:
+        cursor = act->param[0];
         break;
 
       case Commands::stop:
@@ -82,6 +78,8 @@ void Instance::Execute (int cursor){
         break;
       case Commands::bitwise:
         this->CmdBit(act);
+        break;
+      case Commands::Loop:
         break;
       default:
         std::cerr << "Warn: Unknown command " << act->command << std::endl;
@@ -119,9 +117,9 @@ void Instance::CmdSS        (Action *act){
 
   if (act->param[0] == 0){
     if (this->handle[ act->param[2] ].mode != RegisterMode::uint64){
-      std::clog << "Warn: Standard Stream length result register should be in uint64 mode to prevent overloading" << std::endl;
-      std::clog << "  Mode: " << this->handle[ act->param[2] ].mode                                               << std::endl;
-      std::clog << "  Line: " << act->line                                                                        <<std::endl;
+      std::cerr << "Warn: Standard Stream length result register should be in uint64 mode to prevent overloading" << std::endl;
+      std::cerr << "  Mode: " << this->handle[ act->param[2] ].mode                                               << std::endl;
+      std::cerr << "  Line: " << act->line                                                                        <<std::endl;
     }
     
     std::cin >> str;
