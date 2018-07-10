@@ -23,16 +23,17 @@ class Instance{
     bool assigned = false;
     int workerID; // Which 'thread' is this instance locked to
 
-    Instance *parent; // Reference to the caller's position
-    Function *ref;    // Reference to the byte code
-    int returnPos;    // The point to go back to once completed
-    int yeildPos;     // The point to go back to once a value has been found
-
     Instance(Function *reference, Instance *caller);
+    bool IsChild(Instance *ptr);
 
   private:
-    bool relativeMode = false;
-    Function *reference;
+    Instance *parent;
+    Function *ref;
+
+    std::vector<Instance *> children;
+
+    int returnPos;    // The point to go back to once completed
+    int yeildPos;     // The point to go back to once a value has been found
 
     void CmdSet(Action *act);
     void CmdSS(Action *act);

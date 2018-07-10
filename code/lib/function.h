@@ -104,7 +104,9 @@ class Function{
   public:
     Function *parent;
     std::string name;
-    int size;
+
+    unsigned int resultSize;
+    unsigned int localSize;
 
     std::vector<Function *> children;
     std::vector<Action> code;

@@ -3,7 +3,11 @@
 
 
 
-
+Function::Function(std::string name, unsigned int local, unsigned int result){
+  this->name = name;
+  this->localSize = local;
+  this->resultSize = result;
+}
 int Function::GetChildsID(std::string str){
   int length = this->children.size();
   for (int i=0; i<length; i++){
@@ -14,10 +18,6 @@ int Function::GetChildsID(std::string str){
   
   return -1;
 };
-Function::Function(std::string name, int size){
-  this->name = name;
-  this->size = size;
-}
 bool Function::Interpret(Segregate::StrCommands source){
   unsigned int codeLen = source.size();
   this->code.resize( codeLen );

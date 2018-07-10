@@ -6,16 +6,20 @@
 Instance::Instance (Function *func, Instance *caller){
   this->ref = func;
   this->parent = caller;
+  this->children.reserve(0);
 };
 void Instance::Execute (int cursor){
   int length = this->ref->code.size();
   Action *act;
 
+  // Itterativly interpret
   while (cursor < length){
     act = &this->ref->code[cursor];
 
     // std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
 
+
+    // Siphon specific behaviour
     switch (act->command){
       case Commands::math:
         this->CmdMath(act);
@@ -93,14 +97,44 @@ void Instance::Execute (int cursor){
 
 
 
+bool Instance::IsChild(Instance *ptr){
+  unsigned long length = this->children.size();
+
+  // Search for the child
+  for (int i=0; i<length; i++){
+    // Ignore invalid elements
+    if (this->children[i] == nullptr){
+      continue;
+    }
+
+    // Return on match
+    if (this->children[i] == ptr){
+      return true;
+    }
+
+    // Allow for children by proxy
+    if (this->children[i]->IsChild(ptr) == true){
+      return true;
+    }
+  }
+
+  // Failed to find a match
+  return false;
+}
+
+
+
 
 /*------------------------------------------
     Commands
 ------------------------------------------*/
 void Instance::CmdSet       (Action *act){
-  if (act->param[1] == 1){ // Copy register values across
+  // Set type (direct/referencial)
+  if (act->param[1] == 1){
+    // Copy register values across
     this->handle[ act->param[0] ].write(  this->handle[ act->param[2] ].read()  );
-  }else{                   // Set the literal value of a register
+  }else{
+    // Set the literal value of a register
     this->handle[ act->param[0] ].write( act->param[2] );
   }
 };
@@ -109,6 +143,7 @@ void Instance::CmdSS        (Action *act){
   unsigned long count;
   std::string str;
 
+  // Ensure text pointer is perceivably valid
   if (this->handle[ act->param[1] ].mode != RegisterMode::uint64){
     std::cerr << "Warn: Attempting to use standard stream with an address register of non-uint64 mode" << std::endl;
     std::cerr << "  Mode: "<<this->handle[ act->param[1] ].mode                                        << std::endl;
@@ -116,6 +151,9 @@ void Instance::CmdSS        (Action *act){
   }
 
   if (act->param[0] == 0){
+    // Standard-in Behvaiour
+
+    // Ensure text length is perceivably valid
     if (this->handle[ act->param[2] ].mode != RegisterMode::uint64){
       std::cerr << "Warn: Standard Stream length result register should be in uint64 mode to prevent overloading" << std::endl;
       std::cerr << "  Mode: " << this->handle[ act->param[2] ].mode                                               << std::endl;
@@ -136,16 +174,22 @@ void Instance::CmdSS        (Action *act){
     Memory::Duplicate(this->handle[ act->param[1] ].value.address, &str, count );
 
   }else{
+    // All standard output behaviour
+
+    // Interpret string pointer + length into C++ types
     count = this->handle[ act->param[2] ].read();
     char *ptr = static_cast<char* >(this->handle[ act->param[1] ].value.address);
 
+    // Read the selected chunk of memory into a char-array for string conversion
     bytes.resize(count);
-
     for (unsigned long i=0; i<count; i++){
       bytes[i] = *(ptr + i);
     }
 
+    // Convert char array into a string
     std::string str(bytes.begin(), bytes.end());
+
+    // Pipe the string into the correct output channel
     switch (act->param[0]){
       case 1:
         std::cout << str;
@@ -160,12 +204,14 @@ void Instance::CmdSS        (Action *act){
   }
 };
 void Instance::CmdMem       (Action *act){
+  // Make sure the pointer register is of valid type
   if (this->handle[ act->param[1] ].mode != RegisterMode::uint64){
     std::cerr << "Warn: Attempting to (un)allocate memory with an address register of non-uint64 mode" << std::endl;
     std::cerr << "  Mode: "<<this->handle[ act->param[1] ].mode<<std::endl;
     std::cerr << "  Line: "<<act->line<<std::endl;
   }
 
+  // Switch between (un)allocate behaviour
   if (act->param[0] == 0){
     this->handle[ act->param[1] ].value.address = Memory::Allocate ( this->handle[ act->param[2] ].read() );
   }else{
@@ -173,26 +219,31 @@ void Instance::CmdMem       (Action *act){
   }
 };
 void Instance::CmdPush      (Action *act){
-  Handle *director;
-  director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
+  // Setup write location
+  Handle *director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
 
+  // Switch between number of bytes
   switch (this->handle[ act->param[0] ].mode){
+    // Write 1byte
     case RegisterMode::int8:
     case RegisterMode::uint8:
       director->uint8 = this->handle[ act->param[0] ].value.uint8;
       break;
 
+    // Write 2bytes
     case RegisterMode::int16:
     case RegisterMode::uint16:
       director->uint16 = this->handle[ act->param[0] ].value.uint16;
       break;
 
+    // Write 4bytes
     case RegisterMode::int32:
     case RegisterMode::uint32:
     case RegisterMode::float32:
       director->uint32 = this->handle[ act->param[0] ].value.uint32;
       break;
 
+    // Write 8bytes
     case RegisterMode::int64:
     case RegisterMode::uint64:
     case RegisterMode::float64:
@@ -201,33 +252,40 @@ void Instance::CmdPush      (Action *act){
   }
 };
 void Instance::CmdPull      (Action *act){
-  Handle *director;
-  director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
+  // Setup read location
+  Handle *director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
 
+  // Switch between number of bytes
   switch (this->handle[ act->param[0] ].mode){
+    // Read 1byte
     case RegisterMode::int8:
     case RegisterMode::uint8:
       this->handle[ act->param[0] ].value.uint8 = director->uint8;
 
+    // Read 2bytes
     case RegisterMode::int16:
     case RegisterMode::uint16:
       this->handle[ act->param[0] ].value.uint16 = director->uint16;
 
+    // Read 4bytes
     case RegisterMode::int32:
     case RegisterMode::uint32:
     case RegisterMode::float32:
       this->handle[ act->param[0] ].value.uint32 = director->uint32;
 
+    // Read 8bytes
     case RegisterMode::int64:
     case RegisterMode::uint64:
     case RegisterMode::float64:
       this->handle[ act->param[0] ].value.uint64 = director->uint64;
   }
 };
-void Instance::CmdMode      (Action *act){  
+void Instance::CmdMode      (Action *act){
+  // Set the mode of the register without translating any data
   this->handle[ act->param[0] ].mode = static_cast<RegisterMode>(act->param[1]);
 };
 void Instance::CmdTranslate (Action *act){
+  // Change the type of the register while keeping the same information
   this->handle[ act->param[0] ].Translate( static_cast<RegisterMode>(act->param[1]) );
 };
 void Instance::CmdMath      (Action *act){
@@ -236,18 +294,24 @@ void Instance::CmdMath      (Action *act){
   Register *C;
   RegisterMode goal;
 
+  // Ensure that the values are not altered
   A.mode = this->handle[ act->param[0] ].mode;
   A.write( this->handle[ act->param[0] ].read() );
   B.mode = this->handle[ act->param[2] ].mode;
   B.write( this->handle[ act->param[2] ].read() );
+
+  // Create an easy reference for result location
   C = &this->handle[ act->param[3] ];
   goal = C->mode; // Ensure the output type is never lost
 
+  // Siphon between different maths operations
   switch ( static_cast<MathOpperation>(act->param[1]) ){
     case MathOpperation::add:
       A.Translate( C->mode );
       B.Translate( C->mode );
       
+      // Give float32/64 the correct behvaiour
+      // Treat all ints as uint64 as it will not effect TCI addition behvaiour
       if (C->mode == RegisterMode::float32){
         C->value.float32 = A.value.float32 + B.value.float32;
       }else if (C->mode == RegisterMode::float64){
@@ -263,6 +327,8 @@ void Instance::CmdMath      (Action *act){
       A.Translate( C->mode );
       B.Translate( C->mode );
       
+      // Give float32/64 the correct behvaiour
+      // Treat all ints as uint64 as it will not effect TCI addition behvaiour
       if (C->mode == RegisterMode::float32){
         C->value.float32 = A.value.float32 + B.value.float32;
       }else if (C->mode == RegisterMode::float64){
@@ -272,31 +338,44 @@ void Instance::CmdMath      (Action *act){
       }
       break;
     case MathOpperation::multiply:
-      if (A.mode == RegisterMode::float32 || A.mode == RegisterMode::float64 || B.mode == RegisterMode::float32 || B.mode == RegisterMode::float64){
+      // Use the correct float precision for the output result
+      if (C->mode == RegisterMode::float64){
         A.Translate(RegisterMode::float64);
         B.Translate(RegisterMode::float64);
-        C->mode = RegisterMode::float64;
 
         C->value.float64 = A.value.float64 * B.value.float64;
-        C->Translate(goal);
+      }else if (C->mode == RegisterMode::float32){
+        A.Translate(RegisterMode::float32);
+        B.Translate(RegisterMode::float32);
+
+        C->value.float32 = A.value.float32 * B.value.float32;
       }else{
+        // TCI will mean signature and sizing of integers will not matter
         C->write( A.read() * B.read() );
       }
+
       break;
     case MathOpperation::divide:
-      if (A.mode == RegisterMode::float32 || A.mode == RegisterMode::float64 || B.mode == RegisterMode::float32 || B.mode == RegisterMode::float64){
+      // Use the correct float precision for the output result
+      if (C->mode == RegisterMode::float64){
         A.Translate(RegisterMode::float64);
         B.Translate(RegisterMode::float64);
-        C->mode = RegisterMode::float64;
 
         C->value.float64 = A.value.float64 / B.value.float64;
-        C->Translate(goal);
+      }else if (C->mode == RegisterMode::float32){
+        A.Translate(RegisterMode::float32);
+        B.Translate(RegisterMode::float32);
+
+        C->value.float32 = A.value.float32 / B.value.float32;
       }else{
+        // TCI will mean signature and sizing of integers will not matter
         C->write( A.read() / B.read() );
       }
+
       break;
     case MathOpperation::modulus:
-      if (A.mode == RegisterMode::float32 || A.mode == RegisterMode::float64 || B.mode == RegisterMode::float32 || B.mode == RegisterMode::float64){
+      // Remember fmod is float64 only
+      if (C->mode == RegisterMode::float64 || C->mode == RegisterMode::float32){
         A.Translate(RegisterMode::float64);
         B.Translate(RegisterMode::float64);
         C->mode = RegisterMode::float64;
@@ -308,6 +387,7 @@ void Instance::CmdMath      (Action *act){
       }
       break;
     case MathOpperation::exponent:
+      // Remember pow is float64 only
       A.Translate(RegisterMode::float64);
       B.Translate(RegisterMode::float64);
       C->mode = RegisterMode::float64;
@@ -318,13 +398,16 @@ void Instance::CmdMath      (Action *act){
   }
 };
 void Instance::CmdCopy      (Action *act){
+  // Make the target register a mirror of the original
+  //   Use pointers to safe on array compute costs
   Register *A = &this->handle[ act->param[0] ];
   Register *B = &this->handle[ act->param[1] ];
 
   B->mode = A->mode;
-  B->write( A->read() );
+  B->value.uint64 = A->value.uint64; // Just copy bytes across
 };
 void Instance::CmdMove      (Action *act){
+  // Check the supplied pointers are of valid type
   if (this->handle[ act->param[0] ].mode != RegisterMode::uint64){
     std::cerr << "Warn: Attempting to move data using a register for the from address not in uint64 mode" << std::endl;
     std::cerr << "  Mode: "<<this->handle[ act->param[0] ].mode                                           << std::endl;
@@ -336,6 +419,7 @@ void Instance::CmdMove      (Action *act){
     std::cerr << "  Line: "<<act->line                                                                  << std::endl;
   };
 
+  // Duplicate one section of RAM to another
   Memory::Duplicate(
     this->handle[ act->param[1] ].value.address,  // To
     this->handle[ act->param[0] ].value.address,  // From
@@ -343,10 +427,13 @@ void Instance::CmdMove      (Action *act){
   );
 }
 void Instance::CmdComp      (Action *act){
+  //   Use pointers to safe on array compute costs
   Register *A = &this->handle[ act->param[0] ];
   Register *B = &this->handle[ act->param[2] ];
   Register *C = &this->handle[ act->param[3] ];
 
+  // Switch between all possible combinations of register type
+  // to ensure that the comparason is at the information level instead of the data/byte level
   switch (A->mode){
     case uint8:
       switch ( B->mode ){
@@ -1808,15 +1895,16 @@ void Instance::CmdBit       (Action *act){
   unsigned long long A;
   unsigned long long B;
 
+  // Read the bytes for the operation
   A = this->handle[ act->param[0] ].value.uint64;
-  
+  // The second term can either be a constant or a register
   if (act->param[2] == 1){
     B = this->handle[ act->param[3] ].value.uint64;
   }else{
     B = act->param[3];
   }
 
-
+  // Apply correct behaviour for the operation
   switch( static_cast<BitOperator>( act->param[1] ) ){
     case AND:
       this->handle[ act->param[4] ].value.uint64 = A&B;
@@ -1839,24 +1927,32 @@ void Instance::CmdBit       (Action *act){
   }
 };
 void Instance::CmdLComp     (Action *act){
+  // Establish pointers for the currently comparing bytes
   char *A = static_cast<char *>( this->handle[ act->param[0] ].value.address );
   char *B = static_cast<char *>( this->handle[ act->param[2] ].value.address );
 
+  // Establish how many bytes will be compared
   unsigned long length = act->param[2];
 
-  // Little edian
+  // Little edian (right to left)
   if (act->param[4] == 0){
     A += length;
     B += length;
 
     while (length > 0){
+      // If the bytes are different
+      //   Store result based on desired action
       if (A > B){
+        // Store true when finding greater than, since it is
         this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::greater);
 
+        // Stop comparing since a difference has been found
         return;
       }else if (A < B){
-
+        // Store true when finding less than, since it is
         this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::less);
+
+        // Stop comparing since a difference has been found
         return;
       }
 
@@ -1866,13 +1962,21 @@ void Instance::CmdLComp     (Action *act){
     }
 
     this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::equal);
-  }else{
+  }else{ // Big edian (left to right)
     while (length > 0){
+      // If the bytes are different
+      //   Store result based on desired action
       if (A > B){
+        // Store true when finding greater than, since it is
         this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::greater);
+
+        // Stop comparing since a difference has been found
         return;
       }else if (A < B){
+        // Store true when finding less than, since it is
         this->handle[ act->param[3] ].value.uint8 = (act->param[1] == Comparason::less);
+
+        // Stop comparing since a difference has been found
         return;
       }
 

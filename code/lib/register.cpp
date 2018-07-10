@@ -6,6 +6,9 @@
 
 
 unsigned long long int Register::read(){
+  // Read the register data as an unsigned integer
+
+  // Ensure that over-reading does not occur
   switch (this->mode){
     case RegisterMode::int8:
     case RegisterMode::uint8:
@@ -31,6 +34,7 @@ unsigned long long int Register::read(){
   std::cerr << "Invalid register mode: " << this->mode;
 };
 void Register::write(unsigned long long int val){
+  // Ignore float behaviour during writes since internals namely use it for transfer of data at the byte level
   switch (this->mode){
     case RegisterMode::int8:
     case RegisterMode::uint8:
@@ -52,6 +56,8 @@ void Register::write(unsigned long long int val){
   }
 };
 void Register::Translate(RegisterMode toMode){
+  // Change the type/behvaiour of the register while keeping information integrity
+
   // Don't waste exeution time if nothing will change
   if (this->mode == toMode){
     return;
