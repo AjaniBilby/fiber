@@ -9,7 +9,7 @@ set MemSafe=%1
 shift
 
 rem Construct the command as the build command is configured
-set Command=clang++ "./code/main.cpp" -o "./fiber.exe"
+set Command=clang++ "./code/main.cpp" -o "./fiber.exe" -std=c++14
 
 
 

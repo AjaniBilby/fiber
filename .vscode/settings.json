@@ -56,5 +56,9 @@
   "files.eol": "\n",
   "editor.insertSpaces": false,
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "clang.cxxflags": [
+    "-D MemorySafe",
+    "-std=c++14"
+  ]
 }

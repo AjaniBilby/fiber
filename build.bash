@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Command="clang++ code/main.cpp -std=c++11 -pthread -o fiber.out"
+Command="clang++ code/main.cpp -std=c++14 -pthread -o fiber.out"
 
 echo "Ensure memory safety? (y/n)"
 read MemSafe
