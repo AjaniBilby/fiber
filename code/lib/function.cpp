@@ -33,9 +33,11 @@ bool Function::Interpret(Segregate::StrCommands source){
     }
 
     // Ignore comment lines
-    if (source[i][0] == "#"){
+    //  '#*'
+    if (source[i][0][0] == '#'){
       continue;
     }
+    //  '; *'
     if (source[i][0] == ";"){
       continue;
     }
@@ -1016,50 +1018,3 @@ bool Function::Parse(Segregate::StrCommands src){
 
   return true;
 };
-
-
-
-
-
-bool ValidTypeSizing(){
-  Handle test;
-
-  if (sizeof(test.int8) != 1){
-    std::cerr <<  "Invalid int8 size" << std::endl;
-    std::cerr << "  "<<sizeof(test.int8)<<" != 8" << std::endl;
-    return false;
-  }
-  if (sizeof(test.int16) != 2){
-    std::cerr <<  "Invalid int16 size" << std::endl;
-    std::cerr << "  "<<sizeof(test.int16)<<" != 8" << std::endl;
-    return false;
-  }
-  if (sizeof(test.int32) != 4){
-    std::cerr <<  "Invalid int32 size" << std::endl;
-    std::cerr << "  "<<sizeof(test.int32)<<" != 8" << std::endl;
-    return false;
-  }
-  if (sizeof(test.float32) != 4){
-    std::cerr <<  "Invalid float32 size" << std::endl;
-    std::cerr << "  "<<sizeof(test.float32)<<" != 8" << std::endl;
-    return false;
-  }
-  if (sizeof(test.int64) != 8){
-    std::cerr <<  "Invalid int64 size" << std::endl;
-    std::cerr << "  "<<sizeof(test.int64)<<" != 8" << std::endl;
-    return false;
-  }
-  if (sizeof(test.float64) != 8){
-    std::cerr <<  "Invalid float64 size" << std::endl;
-    std::cerr << "  "<<sizeof(test.float64)<<" != 8" << std::endl;
-    return false;
-  }
-
-  if (sizeof(test.address) > 8){
-    std::cerr << "Invalid address size" << std::endl;
-    std::cerr << "  "<<sizeof(test.address)<<" > 8" << std::endl;
-    return false;
-  }
-
-  return true;
-}

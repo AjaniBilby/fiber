@@ -26,14 +26,14 @@ union Handle {
   unsigned short int uint16;
 
   float float32;
-  long int int32;
-  unsigned long int uint32;
+  int int32;
+  unsigned int uint32;
 
   double float64;
-  long long int int64;
-  unsigned long long int uint64;
+  long int64;
+  unsigned long uint64;
 };
-enum RegisterMode: unsigned long long {
+enum RegisterMode: unsigned long {
   // Single Byte Operation
   uint8,
   int8,
@@ -62,6 +62,11 @@ class Register{
     void Translate(RegisterMode toMode);
 };
 int GetRegisterID(std::string str);
+
+
+
+
+bool ValidTypeSizing();
 
 
 #include "register.cpp"

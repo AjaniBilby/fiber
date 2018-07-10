@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
   Thread::Init();
 
   // Mount the data into a function tree
-  Function entry ("_root_",0);
+  Function entry ("_root_",0,0);
   if (entry.Parse( Segregate::Fragment(fileData) ) == false){
     std::cerr << "Error: Failed to interpret" << std::endl;
   }else{
@@ -79,6 +79,8 @@ int main(int argc, char* argv[]){
     Thread::Dispatch(&root, 0);
 
     Thread::Wedge();
+
+    std::cout << std::endl;
   }
 
   return 0;

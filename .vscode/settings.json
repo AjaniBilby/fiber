@@ -1,5 +1,6 @@
 {
   "editor.tabSize": 2,
+
   "files.associations": {
     "atomic": "cpp",
     "chrono": "cpp",
@@ -51,4 +52,9 @@
     "string": "cpp",
     "xthread": "cpp"
   },
+
+  "files.eol": "\n",
+  "editor.insertSpaces": false,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
 }
