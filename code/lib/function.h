@@ -111,7 +111,7 @@ class Function{
     std::vector<Function *> children;
     std::vector<Action> code;
 
-    Function(std::string name, int size);
+    Function(std::string name, unsigned int local, unsigned int result);
     bool Parse(Segregate::StrCommands source);
     int GetChildsID(std::string str); // Get the function ID number of a child
   private:
@@ -120,11 +120,6 @@ class Function{
     bool SimplifyLoop();
     bool CheckBlockEndPoints();
 };
-
-
-
-
-bool ValidTypeSizing();
 
 
 #include "function.cpp"
