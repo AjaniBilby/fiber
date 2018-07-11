@@ -1,11 +1,10 @@
-#ifndef Thread_H
-#define Thread_H
+#pragma once
 
 #include <chrono>
 #include <thread>
 #include <atomic>
 
-#include "instance.h"
+#include "./instance.hpp"
 
 namespace Thread{
   class Invoice{
@@ -48,5 +47,4 @@ namespace Thread{
   void Init();
 }
 
-#include "thread.cpp"
-#endif
+#include "./thread.cpp"

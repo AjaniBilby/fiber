@@ -1,4 +1,4 @@
-#include "instance.h"
+#include "instance.hpp"
 
 
 
@@ -159,13 +159,13 @@ void Instance::CmdSS        (Action *act){
       std::cerr << "  Mode: " << this->handle[ act->param[2] ].mode                                               << std::endl;
       std::cerr << "  Line: " << act->line                                                                        <<std::endl;
     }
-    
+
     std::cin >> str;
     count = sizeof(str);
 
     // Create a safe space for the input stream data
     //   (Won't get destroyed after function call)
-    // Store the information about the space in the 
+    // Store the information about the space in the
     // two specified registers
     this->handle[ act->param[1] ].value.address = Memory::Allocate ( count );
     this->handle[ act->param[2] ].write(count);
@@ -309,7 +309,7 @@ void Instance::CmdMath      (Action *act){
     case MathOpperation::add:
       A.Translate( C->mode );
       B.Translate( C->mode );
-      
+
       // Give float32/64 the correct behvaiour
       // Treat all ints as uint64 as it will not effect TCI addition behvaiour
       if (C->mode == RegisterMode::float32){
@@ -326,7 +326,7 @@ void Instance::CmdMath      (Action *act){
     case MathOpperation::subtract:
       A.Translate( C->mode );
       B.Translate( C->mode );
-      
+
       // Give float32/64 the correct behvaiour
       // Treat all ints as uint64 as it will not effect TCI addition behvaiour
       if (C->mode == RegisterMode::float32){
@@ -1644,7 +1644,7 @@ void Instance::CmdComp      (Action *act){
               break;
             case greater:
               C->value.uint8 = A->value.uint64 > B->value.int16 ? true : false;
-              break; 
+              break;
             case less:
               C->value.uint8 = A->value.uint64 < B->value.int16 ? true : false;
               break;

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <vector>
 
-#include "./lib/thread.h"
+#include "./lib/thread.hpp"
 
 #define FIBER_VERSION "v0.0.1a"
 bool FLAG_TIME = false;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]){
 
   // Mount the data into a function tree
   Function entry ("_root_",0,0);
-  if (entry.Parse( Segregate::Fragment(fileData) ) == false){
+  if (entry.Parse( Segregate::Fragment(std::string(fileData)) ) == false){
     std::cerr << "Error: Failed to interpret" << std::endl;
   }else{
     // Start execution

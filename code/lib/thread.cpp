@@ -1,4 +1,4 @@
-#include "thread.h"
+#include "thread.hpp"
 
 namespace Thread{
 
@@ -90,7 +90,7 @@ namespace Thread{
   // PRIVATE
   void Worker::Sleep(){
     this->alive = false;
-    
+
     // std::cout << "Thread[" << this->id << "]: Hibernating..." << std::endl;
 
     // Only pass this block if all workers are asleep
@@ -143,7 +143,7 @@ namespace Thread{
     // Search for an empty space
     for (int i=0; i<MAX_QUEUE; i++){
       if (queue[i].Assign(ptr, cursor) == true){
-        
+
         return;
       }
     }

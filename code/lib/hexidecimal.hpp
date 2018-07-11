@@ -1,5 +1,4 @@
-#ifndef Hexidecimal_H
-#define Hexidecimal_H
+#pragma once
 
 /*
   Purpose:
@@ -16,5 +15,4 @@ namespace Hexidecimal {
 }
 
 
-#include "hexidecimal.cpp"
-#endif
+#include "./hexidecimal.cpp"

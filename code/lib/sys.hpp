@@ -1,5 +1,4 @@
-#ifndef System_H
-#define System_H
+#pragma once
 
 namespace System{
   enum Color: unsigned char{
@@ -27,9 +26,13 @@ namespace System{
 
 #ifdef _WIN32
   #include "./os/win.cpp"
-#else
+#elif __linux__
   #include "./os/unix.cpp"
+#elif __Apple__
+  #include "./os/unix.cpp"
+  #error Apple devices have untested behaviour
+#else
+  #error Unhandled OS type
 #endif
 
-#include "sys.cpp"
-#endif
+#include "./sys.cpp"

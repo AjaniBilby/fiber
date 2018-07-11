@@ -1,92 +1,142 @@
-#include "segregate.h"
+#include "./segregate.hpp"
 
-namespace Segregate {
-  // Splits a single line into individual parameters
-  ParamArray Parameterize(std::string str){    
-    // Result
-    ParamArray res;
+namespace Segregate{
+	bool IsParamBreak(char val){
+		if (val == ' '){
+			return true;
+		}else if (val == '\t'){
+			return true;
+		}
 
-    // Working Variables
-    bool hadContent = false;
-    int toIndex = 0;
-    int cursor = 0;
-    int vecLen = 0;
+		return false;
+	};
+	bool IsLineBreak(char val){
+		if (val == '\n'){
+			return true;
+		}
 
-    int length = str.length();
-    for (int i=0; i<length; i++){
-      if (str[i] == ' ' || str[i] == '\t'){
-        if (hadContent){
-          // Make the vector the correct size to include the new item
-          toIndex = vecLen;
-          vecLen++;
-          res.resize(vecLen);
+		return false;
+	};
 
-          // Append new item
-          res[toIndex] = str.substr(cursor, i - cursor);
-        }
+	std::string RemoveCarrageReturn(std::string str){
+		unsigned long length = str.size();
+		for (unsigned long i=0; i<length; i++){
+			if (str[i] == '\r'){
+				// Left shift all chars
+				for (unsigned long j=i+1; j<length; j++){
+					str[j-1] = str[j];
+				}
 
-        // Update for next interval
-        cursor = i+1;
-        hadContent = false; // FALSE
-        
-        continue;
-      }
+				// Store length due to pop
+				length--;
+			}
+		}
 
-      hadContent = true;
-    }
+		// Change string length to ignore trailing invalid chars
+		str.resize(length);
 
-    // Make sure the last param is not cut off
-    if (hadContent){
-      // Make the vector the correct size to include the new item
-      toIndex = vecLen;
-      vecLen++;
-      res.resize(vecLen);
+		return str;
+	}
 
-      // Append new item
-      res[toIndex] = str.substr(cursor);
-    }
+	// Splits a single line into individual parameters
+	ParamArray Parameterize(std::string str){
+		str.assign( RemoveCarrageReturn(str) );
+		str.append(" "); // Ensures that the loop will cover all segments
+		unsigned long length = str.size();
+		unsigned long comStart = 0;
+		ParamArray res;
 
-    return res;
-  };
 
-  StrCommands Fragment(std::string str){
-    // Result 
-    StrCommands res;
+		// Ignore indentation
+		//  Find the start of actual content
+		while (comStart < length && IsParamBreak(str[comStart])){
+			comStart++;
+		}
 
-    // Working Variables
-    int toIndex = 0;
-    int cursor = 0;
-    int vecLen = 0;
 
-    int length = str.length();
-    for (int i=0; i<length; i++){
-      // On new line;
-      if ( str[i] == '\n'){
-        // Make space in the vector for the new item
-        toIndex = vecLen;
-        vecLen++;
-        res.resize(vecLen);
+		// Count the number of parameters
+		unsigned long vecLen = 0;
+		for (unsigned long i=comStart; i<length; i++){
+			if ( IsParamBreak(str[i]) ){
+				vecLen++;
+			}
+		}
+		res.resize(vecLen);  // Initilize veclen objects
 
-        // Append new item
-        if (str[i-1] == '\r'){ // Cut of carrage returns (Windows)
-          res[toIndex] = Parameterize( str.substr(cursor, i-cursor-1) );
-        }else{
-          res[toIndex] = Parameterize( str.substr(cursor, i-cursor) );
-        }
 
-        cursor = i+1;
-        continue;
-      }
-    }
+		// Scan will fail if there is no data
+		if (length == 0){
+			return res;
+		}
 
-    // Ensure the last line isn't cut off
-    toIndex = vecLen;
-    vecLen++;
-    res.resize(vecLen);
 
-    // Append new item
-    res[toIndex] = Parameterize( str.substr(cursor) );
+		// Slice the the string into parts
+		unsigned long toIndex = 0;
+		unsigned long cursor = comStart;
+		for (unsigned long i=cursor; i<length; i++){
+			if (IsParamBreak(str[i]) == true){
+				// Transfer the sub-string to the vector,
+				//  Ensure that the data is it's own, and not a reference
+				res[toIndex].assign( str.substr(cursor, i-cursor) );
 
-    return res;
-  };
+				cursor = i+1;
+				toIndex++;
+			}
+		}
+
+		return res;
+	};
+
+
+	StrCommands Fragment(std::string str){
+		str.append("\n"); // Ensures that the loop will cover all segments
+		unsigned long length = str.size();
+
+		// Result
+		StrCommands res;
+
+
+		// Count lines
+		//  Ignoring empty lines
+		unsigned long vecLen = 0;
+		for (unsigned long i=0; i<length; i++){
+			if (IsLineBreak(str[i])){
+				vecLen++;
+			}
+		}
+		res.resize(vecLen);
+
+
+		// Ignore 'empty' strings as they may cause errors
+		if (vecLen == 0){
+			return res;
+		}
+
+
+		// Read lines
+		unsigned long toIndex = 0;
+		unsigned long cursor = 0;
+		unsigned long line = 1;
+		for (unsigned long i=0; i<length; i++){
+			if (IsLineBreak(str[i])){
+				res[toIndex].param = Parameterize( str.substr(cursor, i-cursor));
+				res[toIndex].line = line;
+
+				// Ignore blank lines
+				if (res[toIndex].param.size() == 0){
+					vecLen--;
+				}else{
+					toIndex++;
+				}
+				cursor = i+1;
+				line++;
+			}
+		}
+
+
+		// Shrink the result due to undersizing for blank lines
+		res.resize(vecLen);
+
+		return res;
+	};
 }

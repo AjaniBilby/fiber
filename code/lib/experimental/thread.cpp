@@ -38,8 +38,8 @@ namespace Thread{
 
     // Expand the schedule size to fit
     // Place the entry at the first new index
-    data.reserve( length + 50 );
-    empty.reserve( data.capacity() );
+    data.resize( length + 50 );
+    empty.resize( data.capacity() );
     this->data[length] = job;
     this->empty[length] = false;
     this->Unlock();
@@ -47,10 +47,10 @@ namespace Thread{
   };
   JobResult Schedule::Search(int workerID){
     JobResult res;
-    
+
     // Ensure no other thread is manipulating the Schedule
     this->Lock();
-    
+
     // Search for an available job,
     // Start for the previous searches end point,
     // This will remove the advantage of as task being at the

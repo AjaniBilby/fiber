@@ -1,4 +1,4 @@
-#include "register.h"
+#include "register.hpp"
 
 
 
@@ -525,7 +525,7 @@ int GetRegisterID(std::string str){
   if (str[0] != 'r'){
     return -1;
   };
-  
+
   switch (str[1]){
     case 'A':
       return 0;
@@ -552,7 +552,7 @@ int GetRegisterID(std::string str){
     case 'L':
       return 11;
   };
-  
+
   return -1;
 };
 

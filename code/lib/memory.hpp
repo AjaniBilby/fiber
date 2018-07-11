@@ -1,5 +1,4 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#pragma once
 
 #include <memory>
 
@@ -10,5 +9,4 @@ namespace Memory{
   void Duplicate(void *destination, void *source, size_t space);
 };
 
-#include "memory.cpp"
-#endif
+#include "./memory.cpp"

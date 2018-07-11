@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Command="clang++ code/main.cpp -std=c++14 -pthread -o fiber.out"
+Command="clang++ -O2 code/main.cpp -std=c++14 -pthread -o fiber.out"
 
 echo "Ensure memory safety? (y/n)"
 read MemSafe
@@ -18,6 +18,7 @@ if [ "$MemSafe" = "y" ]; then
 else
   echo  - Memory Safety : No
 fi
+echo  - Optimized     : Yes
 echo  - 64bit         : Yes
 echo  - OS            : Native
 

@@ -1,15 +1,14 @@
-#ifndef Instance_H
-#define Instance_H
+#pragma once
 
 /*
   Purpose:
-    
+
 */
 
 
-#include "function.h"
-#include "thread.h"
-#include "memory.h"
+#include "./function.hpp"
+#include "./thread.hpp"
+#include "./memory.hpp"
 
 #include <vector>
 #include <string>
@@ -51,5 +50,4 @@ class Instance{
 };
 
 
-#include "instance.cpp"
-#endif
+#include "./instance.cpp"

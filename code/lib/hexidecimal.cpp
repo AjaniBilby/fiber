@@ -1,4 +1,4 @@
-#include "hexidecimal.h"
+#include "hexidecimal.hpp"
 
 namespace Hexidecimal {
   long int convert(std::string input){

@@ -1,5 +1,4 @@
-#ifndef REGISTER_H
-#define REGISTER_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -8,7 +7,7 @@
 #include <cmath>
 
 
-#include "hexidecimal.h"
+#include "./hexidecimal.hpp"
 
 
 
@@ -19,19 +18,19 @@
 union Handle {
   void *address;
 
-  char int8;
-  unsigned char uint8;
+  int8_t int8;
+  uint8_t uint8;
 
-  short int int16;
-  unsigned short int uint16;
+  int16_t int16;
+  uint16_t uint16;
 
   float float32;
-  int int32;
-  unsigned int uint32;
+  int32_t int32;
+  uint32_t uint32;
 
   double float64;
-  long int64;
-  unsigned long uint64;
+  int64_t int64;
+  uint64_t uint64;
 };
 enum RegisterMode: unsigned long {
   // Single Byte Operation
@@ -69,5 +68,4 @@ int GetRegisterID(std::string str);
 bool ValidTypeSizing();
 
 
-#include "register.cpp"
-#endif
+#include "./register.cpp"

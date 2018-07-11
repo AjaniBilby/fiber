@@ -1,5 +1,4 @@
-#ifndef Segregate_H
-#define Segregate_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -13,12 +12,20 @@
 namespace Segregate {
   // Module types
   typedef std::vector< std::string > ParamArray;
-  typedef std::vector< ParamArray > StrCommands;
+  struct StrCommand{
+    unsigned long line;
+    ParamArray param;
+  };
+  typedef std::vector< StrCommand > StrCommands;
+
+  bool IsParamBreak(char val);
+  bool IsLineBreak(char val);
+
+  std::string RemoveCarrageReturn(std::string str);
 
   ParamArray Parameterize(std::string str);
   StrCommands Fragment(std::string str);
 }
 
 
-#include "segregate.cpp"
-#endif
+#include "./segregate.cpp"
