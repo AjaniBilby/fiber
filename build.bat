@@ -83,5 +83,5 @@ echo  - 64bit         : Yes
 echo  - OS            : Native
 
 echo.
-echo %Command%
-%Command% %*
+echo %Command% %1
+%Command% %1
