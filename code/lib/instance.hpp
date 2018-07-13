@@ -7,6 +7,7 @@
 
 
 #include "./function.hpp"
+#include "./instance.hpp"
 #include "./thread.hpp"
 #include "./memory.hpp"
 

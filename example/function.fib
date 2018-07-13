@@ -1,4 +1,3 @@
 function testABCD 10 2
 	stop
 end
-end

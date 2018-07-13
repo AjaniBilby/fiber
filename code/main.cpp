@@ -67,20 +67,28 @@ int main(int argc, char* argv[]){
 
 
 
-  Thread::Init();
 
   // Mount the data into a function tree
   Function entry ("_root_",0,0);
   if (entry.Parse( Segregate::Fragment(std::string(fileData)) ) == false){
     std::cerr << "Error: Failed to interpret" << std::endl;
   }else{
+    Thread::Pool pool(0);
+
     // Start execution
     Instance root(&entry, nullptr);
-    Thread::Dispatch(&root, 0);
+    Thread::Job first;
+    first.ptr = &root;
+    first.cursor = 0;
+    pool.Dispatch(first, false, 0);
 
-    Thread::Wedge();
 
+    // Show startup profile
+    // std::cout << "Threads: " << pool.ThreadCount() << std::endl << std::endl;
+
+    pool.Wedge();
     std::cout << std::endl;
+    std::cout << "done" << std::endl;
   }
 
   return 0;

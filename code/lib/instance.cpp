@@ -8,7 +8,7 @@ Instance::Instance (Function *func, Instance *caller){
   this->parent = caller;
   this->children.reserve(0);
 };
-void Instance::Execute (int cursor){
+void Instance::Execute (int cursor ){
   int length = this->ref->code.size();
   Action *act;
 

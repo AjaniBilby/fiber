@@ -1,161 +1,269 @@
-#include "thread.hpp"
+#include "./thread.hpp"
+
+
+
 
 namespace Thread{
+	Schedule::Schedule(){
+		this->data.resize(Thread_Default_Queue_Size);
+		this->empty.resize(Thread_Default_Queue_Size, true);
 
-  // PUBLIC
-  void Invoice::Init(){
-    this->completed = true;
-  };
-  bool Invoice::Attempt(int id){
-    if (this->completed){
-      return false;
-    }
-    if (this->working){
-      return false;
-    }
+		this->lastFound = 0;
+		this->jobs = 0;
+	}
 
-    if (this->task->assigned == true){
-      if (this->task->workerID != id){
-        return false;
-      }
-    }else{  // If this task is not asssigned, then make the requester own it
-      this->task->assigned = true;
-      this->task->workerID = id;
-    }
+	void Schedule::Dispatch(Job job){
+		this->active.lock();
+		this->jobs += 1;
 
-    this->Process();
-    return true;
-  };
-  bool Invoice::Assign(Instance *ptr, int cursor){
-    // Do not overwrite an awaiting/inprogress task
-    if (this->completed == false){
-      return false;
-    }
+		// Find an empty slot
+		// Place the entry within said slot
+		int length = this->data.capacity();
+		for (int i=0; i<length; i++){
+			if ( this->empty[i] == true ){
+				this->data[i] = job;
+				this->empty[i] = false;
 
-    // Prevent other's from editing
-    this->completed = true;
-    this->working = true;
+				this->active.unlock();
+				return;
+			}
+		}
 
-    this->task = ptr;
-    this->start = cursor;
+		// Expand the schedule size to fit
+		// Place the entry at the first new index
+		data.resize( length + Thread_Queue_Increment );
+		empty.resize( data.capacity(), true );
+		this->data[length] = job;
+		this->empty[length] = false;
+		this->active.unlock();
+		return;
+	}
 
-    // Make invoice available
-    this->completed = false;
-    this->working = false;
+	JobResult Schedule::Search(int workerID){
+		JobResult res;
 
-    // Wake the worker required if it is asleep
-    if (ptr->assigned == true){
-      workers[ptr->workerID].Wake();
-    }else{
-      // Wake a single sleeping worker
-      // So it can self assign the task
-      for (int i=0; i<MAX_WORKERS; i++){
-        if (workers[i].Wake()){
-          return true;
-        }
-      }
-    }
+		// Ensure no other thread is manipulating the Schedule
+		this->active.lock();
 
-    return true;
-  }
-  // PRIVATE
-  void Invoice::Process(){
-    this->working = true;
-    this->task->Execute(this->start);
-    this->completed = true;
+		// Search for an available job,
+		// Start for the previous searches end point,
+		// This will remove the advantage of as task being at the
+		//   front of the queue
+		unsigned int length = this->data.capacity();
+		unsigned int i=this->lastFound+1;
+		while (true){
+			// Loop the search
+			if (i >= length){
+				i -= length;
+			}
 
-    return;
-  };
+			if (this->empty[i] == false){
+				// Parse the information to the result
+				res.found = true;
+				res.result = this->data[i];
 
+				// Remove this job from the queue
+				this->lastFound = i;
+				this->empty[i] = true;
+				this->jobs -= 1;
 
+				// Return and wrap up operation
+				this->active.unlock();
 
+				return res;
+			}
 
+			// A full search of the Schedule has been done
+			// No results found, break search
+			if (i == this->lastFound){
+				break;
+			}
 
-  // PUBLIC
-  void Worker::Init(int ID){
-    this->alive = false;
-    this->id = ID;
-  };
-  bool Worker::Wake(){
-    if (this->alive == false){
-      this->alive = true;
+			i++;
+		}
 
-      std::thread (&Worker::Process, this).detach();
-      return true;
-    }else{
-      return false;
-    }
-  }
+		res.found = false;
+		return res;
+	};
+	unsigned long Schedule::JobCount(){
+		return this->jobs;
+	};
 
-  // PRIVATE
-  void Worker::Sleep(){
-    this->alive = false;
-
-    // std::cout << "Thread[" << this->id << "]: Hibernating..." << std::endl;
-
-    // Only pass this block if all workers are asleep
-    // for (int i=0; i<MAX_WORKERS){
-    //   if (workers[i].alive == true){
-    //     return;
-    //   }
-    // }
-  }
-  void Worker::Process(){
-    int last = MAX_QUEUE-1;
-    int i = 0;
-
-    // std::cout << "Thread[" << this->id << "]: Now Active" << std::endl;
-
-    while (true){
-
-      // Reset the loop scan end point
-      if (queue[i].Attempt( this->id ) == true){
-        last = i;
-      }else if (last == i){
-        // If this element has been attempted and was re-attempted,
-        // presume there is nothing in the queue for this worker
-        break;
-      }
-
-      // Looping search
-      i = (i + 1) % MAX_QUEUE;
-    }
-
-    this->Sleep();
-  }
-
-
-
-
-
-  void Wedge(){
-    repeat:
-    // Block passage if a worker is active
-    for (int i=0; i<MAX_WORKERS; i++){
-      if (workers[i].alive == true){
-        std::this_thread::sleep_for( std::chrono::milliseconds(100) );
-        goto repeat;
-      }
-    }
-  }
-
-  void Dispatch(Instance *ptr, int cursor){
-    // Search for an empty space
-    for (int i=0; i<MAX_QUEUE; i++){
-      if (queue[i].Assign(ptr, cursor) == true){
-
-        return;
-      }
-    }
-  }
-
-  void Init(){
-    for (int i=0; i<MAX_QUEUE; i++){
-      queue[i].Init();
-    }
-    for (int i=0; i<MAX_WORKERS; i++){
-      workers[i].Init(i);
-    }
-  }
-
+	unsigned long Schedule::Capacity(){
+		return this->data.capacity();
+	};
 }
+
+
+
+
+
+
+namespace Thread{
+	Worker::Worker(unsigned int id, Schedule *unassignedHeap){
+		this->id = id;
+		this->anonymous = unassignedHeap;
+		this->awake = false;
+		this->thread = nullptr;
+	};
+
+	bool Worker::Wake(){
+		if (this->awake == false){
+			this->awake = true;
+
+			if (this->thread != nullptr){
+				delete this->thread;
+			}
+
+			this->thread = new std::thread(&Worker::Process, this);
+			this->thread->detach();
+
+			return true;
+		}else{
+			return false;
+		}
+	};
+
+	void Worker::Assign(Job task){
+		this->work.Dispatch(task);
+
+		// Ensure that the thread is awake to process the task
+		this->Wake();
+	};
+
+	void Worker::Process(){
+		JobResult res;
+
+		this->awake = true;
+
+		// Repeat until no task is found
+		while (true){
+
+
+			// Find a job from either own work load or anonymous
+			//   Priorities own work over anonoymous
+			res = this->work.Search(this->id);
+			if (res.found == false){
+				res = this->anonymous->Search(this->id);
+
+				// Claim the anonymous instance
+				if (res.found){
+					res.result.ptr->workerID = this->id;
+					res.result.ptr->assigned = true;
+				}
+			}
+
+			if (res.found == true){
+				res.result.ptr->Execute(res.result.cursor);
+
+				// Find next job
+				continue;
+			}else{
+				this->awake = false;
+				break;
+			}
+		}
+	};
+
+	unsigned int Worker::JobCount(){
+		return this->work.JobCount();
+	};
+};
+
+
+
+
+
+
+namespace Thread{
+	Pool::Pool(unsigned int threads){
+		// If unspecified, use system info
+		if (threads == 0){
+			threads = std::thread::hardware_concurrency();
+		}
+		// Min workers = 2
+		if (threads < 2){
+			threads = 2;
+		}
+
+		this->workers = threads;
+		this->worker.reserve(threads);
+
+		// Assign Worker's default values
+		for (int i=0; i<threads; i++){
+			this->worker[i] = new Worker(i, &this->anonymous);
+		}
+	}
+
+	void Pool::Dispatch(Job task, bool targeted, unsigned int workerID){
+		if (targeted == false){
+			this->anonymous.Dispatch(task);
+
+			// If there is a thread sleeping,
+			// Wake it so it can take the anonymous task
+			for (int i=0; i<this->workers; i++){
+				// If the worker was woken,
+				//   then stop
+				if (this->worker[i]->Wake() == true){
+					break;
+				}
+			}
+		}
+
+		if (workerID > workers){
+			std::cerr << "Error: Attempting to assign task to invalid worker" << std::endl;
+			return;
+		}
+
+		this->worker[workerID]->Assign(task);
+	};
+
+	bool Pool::Active(){
+		for (int i=0; i<workers; i++){
+			if (this->worker[i]->Active() == true){
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	void Pool::WakeAll(){
+		for (int i=0; i<this->workers; i++){
+			this->worker[i]->Wake();
+		}
+	};
+
+	unsigned long Pool::JobCount(){
+		unsigned int tally = this->anonymous.JobCount();
+
+		for (int i=0; i<this->workers; i++){
+			tally += this->worker[i]->JobCount();
+		}
+
+		return tally;
+	};
+
+	void Pool::Wedge(){
+		bool active = true;
+		unsigned long temp;
+
+		while (active){
+			active = this->Active();
+
+			if (!active){
+				temp = this->JobCount();
+				if (temp > 0){
+					this->WakeAll();
+
+					active = true;
+				}else{
+					break;
+				}
+			}else{
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+	};
+};
