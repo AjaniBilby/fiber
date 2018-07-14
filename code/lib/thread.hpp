@@ -43,9 +43,8 @@ namespace Thread{
 			/*
 				Search for a job
 				Only results jobs that are able to be processed by the requestor
-				@param workerID - Who is attempting to process the task
 			*/
-			JobResult Search(int workerID);
+			JobResult Search();
 			unsigned long JobCount();
 			unsigned long Capacity();
 	};

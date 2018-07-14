@@ -35,11 +35,12 @@ namespace Thread{
 		empty.resize( data.capacity(), true );
 		this->data[length] = job;
 		this->empty[length] = false;
+
 		this->active.unlock();
 		return;
 	}
 
-	JobResult Schedule::Search(int workerID){
+	JobResult Schedule::Search(){
 		JobResult res;
 
 		// Ensure no other thread is manipulating the Schedule
@@ -50,14 +51,10 @@ namespace Thread{
 		// This will remove the advantage of as task being at the
 		//   front of the queue
 		unsigned int length = this->data.capacity();
-		unsigned int i=this->lastFound+1;
+		unsigned int i=this->lastFound;
 		while (true){
-			// Loop the search
-			if (i >= length){
-				i -= length;
-			}
-
 			if (this->empty[i] == false){
+
 				// Parse the information to the result
 				res.found = true;
 				res.result = this->data[i];
@@ -73,15 +70,20 @@ namespace Thread{
 				return res;
 			}
 
+			// Itterate looped scan
+			i++;
+			if (i >= length){
+				i = 0;
+			}
+
 			// A full search of the Schedule has been done
 			// No results found, break search
 			if (i == this->lastFound){
 				break;
 			}
-
-			i++;
 		}
 
+		this->active.unlock();
 		res.found = false;
 		return res;
 	};
@@ -252,17 +254,20 @@ namespace Thread{
 			// Find a job from either own work load or anonymous
 			//   Priorities own work over anonoymous
 			std::cout << "Thread ["<<this->id<<"]: Job hunting"<<std::endl;
-			res = this->work.Search(this->id);
+			res = this->work.Search();
 			if (res.found == false){
-				res = this->anonymous->Search(this->id);
+				std::cout << "  no designated work" << std::endl;
+				res = this->anonymous->Search();
 
 				// Claim the anonymous instance
 				if (res.found){
 					target = reinterpret_cast<Instance*>(res.result.ptr);
 					target->workerID = this->id;
 					target->assigned = true;
+					std::cout << "  found undesignated work" << std::endl;
 				}
 			}else{
+				std::cout << "  found designated work" << std::endl;
 				target = reinterpret_cast<Instance *>(res.result.ptr);
 			}
 

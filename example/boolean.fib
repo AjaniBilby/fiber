@@ -2,27 +2,27 @@
 
 
 # Setup Registers
-  # String starting point
-  mode rA uint64
+	# String starting point
+	mode rA uint64
 
-  # Boolean
-  mode rB uint8
+	# Boolean
+	mode rB uint8
 
-  # Length of the string
-  mode rC uint64
+	# Length of the string
+	mode rC uint64
 
-  # The character[4] being written to the string
-  mode rD uint32
+	# The character[4] being written to the string
+	mode rD uint32
 
-  mode rE uint64
+	mode rE uint64
 
 
 # Construct string
-  # Define the length of the string
-  set rC 4
-  
-  # Allocate space for string
-  mem alloc rA rC
+	# Define the length of the string
+	set rC 4
+
+	# Allocate space for string
+	mem alloc rA rC
 
 
 set rB 40
@@ -30,17 +30,17 @@ set rE 50
 
 compare rB > rE rB
 if rB
-  # Build string 'Yes '
-  set rD 20736559
+	# Build string 'Yes\n'
+	set rD 0A736559
 else
-  # Build string 'No '
-  set rD 20206F4E
+	# Build string 'No \n'
+	set rD 0A206F4E
 end
 
 
 # Print the constructed string
-  push rD rA
-  ss out rA rC
+	push rD rA
+	ss out rA rC
 
 
 # Cleanup (optional)
