@@ -63,6 +63,7 @@ bool Function::Interpret(Segregate::StrCommands source){
 
 
 	for (unsigned int i=0; i<codeLen; i++){
+
 		// Ignore comment lines
 		//  '#*'
 		if (source[i].param[0][0] == '#'){
@@ -391,7 +392,7 @@ bool Function::Interpret(Segregate::StrCommands source){
 
 			this->code[ptr].command = Commands::math;
 			this->code[ptr].line = source[i].line;
-			this->code[ptr].param.reserve(4);
+			this->code[ptr].param.reserve(5);
 
 			// A value
 			if (source[i].param[1][0] == 'r'){
@@ -865,6 +866,9 @@ bool Function::Interpret(Segregate::StrCommands source){
 
 		// Spawn function instances
 		if (source[i].param[0] == "instance"){
+			this->code[ptr].command = Commands::instance;
+			this->code[ptr].line = source[i].line;
+
 			if (source[i].param.size() < 2){
 				std::cerr << "Error: Undefined instance behaviour"<<std::endl;
 				std::cerr << "  line: " << source[i].line;
@@ -880,7 +884,6 @@ bool Function::Interpret(Segregate::StrCommands source){
 					continue;
 				}
 
-				this->code[ptr].command = Commands::instance;
 				this->code[ptr].param.resize(3);
 				this->code[ptr].param[0] = 0;
 				this->code[ptr].param[1] = GetChildsID(source[i].param[2]);
@@ -904,7 +907,6 @@ bool Function::Interpret(Segregate::StrCommands source){
 			}
 
 			if (source[i].param[1] == "yeild"){
-				this->code[ptr].command = Commands::instance;
 				this->code[ptr].param.resize(3);
 				this->code[ptr].param[0] = 1;
 				this->code[ptr].param[1] = GetRegisterID(source[i].param[2]);
@@ -923,7 +925,6 @@ bool Function::Interpret(Segregate::StrCommands source){
 			}
 
 			if (source[i].param[1] == "return"){
-				this->code[ptr].command = Commands::instance;
 				this->code[ptr].param.resize(1);
 				this->code[ptr].param[0] = 2;
 				this->code[ptr].param[1] = GetRegisterID(source[i].param[2]);
@@ -942,7 +943,6 @@ bool Function::Interpret(Segregate::StrCommands source){
 			}
 
 			if (source[i].param[1] == "execute"){
-				this->code[ptr].command = Commands::instance;
 				this->code[ptr].param.resize(3);
 				this->code[ptr].param[0] = 3;
 				this->code[ptr].param[1] = GetRegisterID(source[i].param[2]);
@@ -988,17 +988,25 @@ bool Function::Interpret(Segregate::StrCommands source){
 			}
 
 			this->code[ptr].command = Commands::local;
+			this->code[ptr].line = source[i].line;
 			this->code[ptr].param.resize(2);
 			this->code[ptr].param[0] = GetRegisterID(source[i].param[1]);
 			this->code[ptr].param[1] = 0;
 
+			if (this->code[ptr].param[2] == -1){
+				std::cerr << "Error: Invalid result register \"" << source[i].param[1] << '"' << std::endl;
+				std::cerr << "  line: " << source[i].line;
+				error = true;
+				continue;
+			}
+
+
 			if (source[i].param.size() > 2){
-				if (source[i].param[2] == "parent"){
-					this->code[ptr].param[1] = 1;
-				}else if (source[i].param[2] == "local"){
-					this->code[ptr].param[1] = 0;
-				}else{
-					std::cerr << "Error: Invalid local data type \"" << source[i].param[2] << "\"" << std::endl;
+				this->code[ptr].param.resize(3);
+
+				this->code[ptr].param[2] = GetRegisterID(source[i].param[2]);
+				if (this->code[ptr].param[2] == -1){
+					std::cerr << "Error: Invalid instance pointer register \"" << source[i].param[1] << '"' << std::endl;
 					std::cerr << "  line: " << source[i].line;
 					error = true;
 					continue;

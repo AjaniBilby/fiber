@@ -4,10 +4,12 @@
 
 
 Instance::Instance (Function *func, Instance *caller, Thread::Pool *pool){
-  this->ref = func;
-  this->parent = caller;
+  this->ref         = func;
+  this->parent      = caller;
+  this->pool        = pool;
+  this->localMemory = 0;
+
   this->child.reserve(0);
-  this->pool = pool;
 };
 void Instance::Execute (unsigned long cursor ){
   int length = this->ref->code.size();
@@ -18,7 +20,7 @@ void Instance::Execute (unsigned long cursor ){
   while (cursor < length){
     act = &this->ref->code[cursor];
 
-    // std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
+    std::cout << act->line << " > Command[" << act->command << ']' << cursor << ' ' << length << std::endl;
 
 
     // Siphon specific behaviour
@@ -86,10 +88,6 @@ void Instance::Execute (unsigned long cursor ){
 
       case Commands::stop:
         return;
-      case Commands::invalid:
-        std::cerr << "Warn: Unexpected invalid command" << std::endl;
-        std::cerr << "  line: " << act->line << std::endl;
-        break;
       case Commands::longCompare:
         this->CmdLComp(act);
         break;
@@ -97,6 +95,10 @@ void Instance::Execute (unsigned long cursor ){
         this->CmdBit(act);
         break;
       case Commands::Loop:
+        break;
+      case Commands::invalid:
+        std::cerr << "Warn: Unexpected invalid command" << std::endl;
+        std::cerr << "  line: " << act->line << std::endl;
         break;
       default:
         std::cerr << "Warn: Unknown command " << act->command << std::endl;
@@ -2086,7 +2088,7 @@ void Instance::CmdLocal     (Action *act){
       this->handle[ act->param[0] ].value.uint64 = this->GetLocalSpace();
       return;
     case 1: // parent
-      this->handle[ act->param[0] ].value.uint64 = reinterpret_cast<uint64_t>(this->parent);
+      this->handle[ act->param[0] ].value.uint64 = this->parent->GetLocalSpace();
       return;
   }
 };

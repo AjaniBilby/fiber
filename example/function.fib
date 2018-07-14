@@ -6,34 +6,17 @@ function main 8 0
 
 	mode rA uint64
 	mode rB uint64
-	mode rC uint64
-	mode rD uint8
-	mode rE uint8
+
+	mode rD uint64
 
 	local rA
 	set rB 8
-	set rE 1
 
-	set rD 65
-	copy rA rC
+	# Build string 'Yes\n'
+	set rD 0A736559
+	push rD rA
 
-	# Fill the local space with 6C
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-	math rC add 1 rC
-	push rD rC
-
+	set rB 8
 	ss out rA rB
 end
 
