@@ -58,11 +58,14 @@ enum Commands {
 		stop,
 		END,
 
-		// If statement
+	// If statement
 		IF,
 		ELSE,
 
-		Loop
+	Loop,
+
+	instance,
+	local,
 };
 
 enum MathOpperation {
@@ -107,18 +110,19 @@ class Function{
 		unsigned long resultSize;
 		unsigned long localSize;
 
+		std::vector<Function*> child;
+
 		std::vector<Action> code;
 
 		Function(std::string name, unsigned long local, unsigned long result);
 		bool Parse(Segregate::StrCommands source);
 		int GetChildsID(std::string str); // Get the function ID number of a child
 	private:
-		std::vector<Function*> child;
-
 		bool Interpret(Segregate::StrCommands source);
 		bool SimplifyIF();
 		bool SimplifyLoop();
 		bool CheckBlocks();
+		bool SimplifyInstance();
 
 		bool Subdivide(Segregate::StrCommands src);
 };

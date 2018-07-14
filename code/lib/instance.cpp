@@ -3,20 +3,22 @@
 
 
 
-Instance::Instance (Function *func, Instance *caller){
+Instance::Instance (Function *func, Instance *caller, Thread::Pool *pool){
   this->ref = func;
   this->parent = caller;
-  this->children.reserve(0);
+  this->child.reserve(0);
+  this->pool = pool;
 };
-void Instance::Execute (int cursor ){
+void Instance::Execute (unsigned long cursor ){
   int length = this->ref->code.size();
+  unsigned int temp = 0;
   Action *act;
 
   // Itterativly interpret
   while (cursor < length){
     act = &this->ref->code[cursor];
 
-    // std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
+    std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
 
 
     // Siphon specific behaviour
@@ -50,6 +52,18 @@ void Instance::Execute (int cursor ){
         this->CmdMove(act);
         break;
 
+      case Commands::instance:
+        // Allow instance to direct execution flow to jump over yeild&return code
+        temp = this->CmdInstance(act, cursor);
+        if (temp != 0){
+          cursor = temp;
+        }
+
+        break;
+      case Commands::local:
+        this->CmdLocal(act);
+        break;
+
       case Commands::standardStream:
         this->CmdSS(act);
         break;
@@ -71,8 +85,7 @@ void Instance::Execute (int cursor ){
         break;
 
       case Commands::stop:
-          return;
-        break;
+        return;
       case Commands::invalid:
         std::cerr << "Warn: Unexpected invalid command" << std::endl;
         std::cerr << "  line: " << act->line << std::endl;
@@ -98,28 +111,41 @@ void Instance::Execute (int cursor ){
 
 
 bool Instance::IsChild(Instance *ptr){
-  unsigned long length = this->children.size();
+  unsigned long length = this->child.size();
 
   // Search for the child
   for (int i=0; i<length; i++){
     // Ignore invalid elements
-    if (this->children[i] == nullptr){
+    if (this->child[i] == nullptr){
       continue;
     }
 
     // Return on match
-    if (this->children[i] == ptr){
+    if (this->child[i] == ptr){
       return true;
     }
 
     // Allow for children by proxy
-    if (this->children[i]->IsChild(ptr) == true){
+    if (this->child[i]->IsChild(ptr) == true){
       return true;
     }
   }
 
   // Failed to find a match
   return false;
+}
+
+
+
+
+unsigned long long Instance::GetLocalSpace(){
+  // If no local memory has been generated yet
+  //   Allocate it
+  if (this->localMemory == 0){
+    this->localMemory = reinterpret_cast<unsigned long long>( Memory::Allocate(this->ref->localSize) );
+  }
+
+  return this->localMemory;
 }
 
 
@@ -178,7 +204,7 @@ void Instance::CmdSS        (Action *act){
 
     // Interpret string pointer + length into C++ types
     count = this->handle[ act->param[2] ].read();
-    char *ptr = static_cast<char* >(this->handle[ act->param[1] ].value.address);
+    char *ptr = reinterpret_cast<char* >(this->handle[ act->param[1] ].value.address);
 
     // Read the selected chunk of memory into a char-array for string conversion
     bytes.resize(count);
@@ -220,7 +246,7 @@ void Instance::CmdMem       (Action *act){
 };
 void Instance::CmdPush      (Action *act){
   // Setup write location
-  Handle *director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
+  Handle *director = reinterpret_cast<Handle*>(this->handle[ act->param[1] ].value.address);
 
   // Switch between number of bytes
   switch (this->handle[ act->param[0] ].mode){
@@ -253,7 +279,7 @@ void Instance::CmdPush      (Action *act){
 };
 void Instance::CmdPull      (Action *act){
   // Setup read location
-  Handle *director = static_cast<Handle*>(this->handle[ act->param[1] ].value.address);
+  Handle *director = reinterpret_cast<Handle*>(this->handle[ act->param[1] ].value.address);
 
   // Switch between number of bytes
   switch (this->handle[ act->param[0] ].mode){
@@ -294,18 +320,29 @@ void Instance::CmdMath      (Action *act){
   Register *C;
   RegisterMode goal;
 
-  // Ensure that the values are not altered
-  A.mode = this->handle[ act->param[0] ].mode;
-  A.write( this->handle[ act->param[0] ].read() );
-  B.mode = this->handle[ act->param[2] ].mode;
-  B.write( this->handle[ act->param[2] ].read() );
+  // Value A
+  if (act->param[0] == 1){
+    A.mode = this->handle[ act->param[1] ].mode;
+    A.write( this->handle[ act->param[1] ].read() );
+  }else{
+    A.mode = RegisterMode::uint64;
+    A.value.uint64 = act->param[1];
+  }
+  // Value B
+  if (act->param[2] == 1){
+    B.mode = this->handle[ act->param[3] ].mode;
+    B.write( this->handle[ act->param[3] ].read() );
+  }else{
+    B.mode = RegisterMode::uint64;
+    B.value.uint64 = act->param[3];
+  }
 
   // Create an easy reference for result location
-  C = &this->handle[ act->param[3] ];
+  C = &this->handle[ act->param[4] ];
   goal = C->mode; // Ensure the output type is never lost
 
   // Siphon between different maths operations
-  switch ( static_cast<MathOpperation>(act->param[1]) ){
+  switch ( static_cast<MathOpperation>(act->param[5]) ){
     case MathOpperation::add:
       A.Translate( C->mode );
       B.Translate( C->mode );
@@ -1928,8 +1965,8 @@ void Instance::CmdBit       (Action *act){
 };
 void Instance::CmdLComp     (Action *act){
   // Establish pointers for the currently comparing bytes
-  char *A = static_cast<char *>( this->handle[ act->param[0] ].value.address );
-  char *B = static_cast<char *>( this->handle[ act->param[2] ].value.address );
+  char *A = reinterpret_cast<char *>( this->handle[ act->param[0] ].value.address );
+  char *B = reinterpret_cast<char *>( this->handle[ act->param[2] ].value.address );
 
   // Establish how many bytes will be compared
   unsigned long length = act->param[2];
@@ -1987,4 +2024,69 @@ void Instance::CmdLComp     (Action *act){
 
     this->handle[ act->param[5] ].value.uint8 = (act->param[1] == Comparason::equal);
   }
-}
+};
+unsigned long Instance::CmdInstance  (Action *act, unsigned long cursor){
+  Instance *target = nullptr;
+  Thread::Job task;
+  unsigned int length;
+
+  switch (act->param[0]){
+    case 0: // create
+
+      // Find an empty space to create a new instance reference
+      length = this->child.size();
+      for (unsigned int i=0; i<length; i++){
+        if (this->child[i] == nullptr){
+          this->child[i] = new Instance(this->ref->child[ act->param[1] ], this, this->pool);
+          target = this->child[i];
+          break;
+        }
+      }
+
+      // Was unable to find an empty slot
+      if (target == nullptr){
+        this->child.resize(length+1);
+
+        this->child[length] = new Instance(this->ref->child[ act->param[1] ], this, this->pool);
+        target = this->child[length];
+      }
+
+      this->handle[ act->param[2] ].value.uint64 = reinterpret_cast<uint64_t>(target);
+      return 0;
+    case 1: // yeild
+      target = reinterpret_cast<Instance*>( this->handle[ act->param[1] ].value.uint64 );
+
+      target->yeildPos = cursor + 1;
+      return act->param[2]+1;
+    case 2: // return
+      target = reinterpret_cast<Instance*>( this->handle[ act->param[1] ].value.uint64 );
+
+      target->returnPos = cursor + 1;
+      return act->param[2]+1;
+    case 3: // execute
+      target = reinterpret_cast<Instance*>( this->handle[ act->param[1] ].value.uint64 );
+
+      task.ptr = target;
+      task.cursor = 0;
+
+      if (act->param[2] == 1){ // Hand the task to worker 0
+        this->pool->Dispatch(task, true, 0);
+      }else{
+        this->pool->Dispatch(task, false, 0);
+      }
+
+      return 0;
+  }
+
+  return 0;
+};
+void Instance::CmdLocal     (Action *act){
+  switch(act->param[1]){
+    case 0: // currect
+      this->handle[ act->param[0] ].value.uint64 = this->GetLocalSpace();
+      return;
+    case 1: // parent
+      this->handle[ act->param[0] ].value.uint64 = reinterpret_cast<uint64_t>(this->parent);
+      return;
+  }
+};

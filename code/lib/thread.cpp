@@ -131,40 +131,6 @@ namespace Thread{
 		this->Wake();
 	};
 
-	void Worker::Process(){
-		JobResult res;
-
-		this->awake = true;
-
-		// Repeat until no task is found
-		while (true){
-
-
-			// Find a job from either own work load or anonymous
-			//   Priorities own work over anonoymous
-			res = this->work.Search(this->id);
-			if (res.found == false){
-				res = this->anonymous->Search(this->id);
-
-				// Claim the anonymous instance
-				if (res.found){
-					res.result.ptr->workerID = this->id;
-					res.result.ptr->assigned = true;
-				}
-			}
-
-			if (res.found == true){
-				res.result.ptr->Execute(res.result.cursor);
-
-				// Find next job
-				continue;
-			}else{
-				this->awake = false;
-				break;
-			}
-		}
-	};
-
 	unsigned int Worker::JobCount(){
 		return this->work.JobCount();
 	};
@@ -255,15 +221,60 @@ namespace Thread{
 				temp = this->JobCount();
 				if (temp > 0){
 					this->WakeAll();
-
 					active = true;
-				}else{
-					break;
+
+					continue;
 				}
-			}else{
 			}
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	};
 };
+
+
+
+#include "instance.hpp"
+
+namespace Thread{
+	void Worker::Process(){
+		JobResult res;
+		Instance *target;
+
+		this->awake = true;
+
+		// Repeat until no task is found
+		while (true){
+
+
+			// Find a job from either own work load or anonymous
+			//   Priorities own work over anonoymous
+			std::cout << "Thread ["<<this->id<<"]: Job hunting"<<std::endl;
+			res = this->work.Search(this->id);
+			if (res.found == false){
+				res = this->anonymous->Search(this->id);
+
+				// Claim the anonymous instance
+				if (res.found){
+					target = reinterpret_cast<Instance*>(res.result.ptr);
+					target->workerID = this->id;
+					target->assigned = true;
+				}
+			}else{
+				target = reinterpret_cast<Instance *>(res.result.ptr);
+			}
+
+			if (res.found == true){
+				std::cout << "  found" <<std::endl;
+				target->Execute(res.result.cursor);
+
+				// Find next job
+				continue;
+			}else{
+				this->awake = false;
+				std::cout << " thread decay"<<std::endl;
+				break;
+			}
+		}
+	};
+}

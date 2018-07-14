@@ -1,3 +1,44 @@
-function testABCD 10 2
-	stop
+function main 8 0
+
+	function fib 24 8
+		stop
+	end
+
+	mode rA uint64
+	mode rB uint64
+	mode rC uint64
+	mode rD uint8
+	mode rE uint8
+
+	local rA
+	set rB 8
+	set rE 1
+
+	set rD 65
+	copy rA rC
+
+	# Fill the local space with 6C
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+	math rC add 1 rC
+	push rD rC
+
+	ss out rA rB
 end
+
+
+# Run main function
+instance create main rA
+# Manually parse arguments here
+instance execute rA

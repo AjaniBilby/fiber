@@ -392,24 +392,43 @@ bool Function::Interpret(Segregate::StrCommands source){
 			this->code[ptr].command = Commands::math;
 			this->code[ptr].line = source[i].line;
 			this->code[ptr].param.reserve(4);
-			this->code[ptr].param[0] = GetRegisterID(source[i].param[1]);
-			this->code[ptr].param[2] = GetRegisterID(source[i].param[3]);
-			this->code[ptr].param[3] = GetRegisterID(source[i].param[4]);
 
-			if (this->code[ptr].param[0] == -1){
-				std::cerr << "Error: Invalid A register " << source[i].param[1] << std::endl;
-				std::cerr << "  line: " << source[i].line << std::endl;
-				error = true;
-				continue;
+			// A value
+			if (source[i].param[1][0] == 'r'){
+				this->code[ptr].param[0] = 1;
+				this->code[ptr].param[1] = GetRegisterID(source[i].param[1]);
+
+				if (this->code[ptr].param[0] == -1){
+					std::cerr << "Error: Invalid A register " << source[i].param[1] << std::endl;
+					std::cerr << "  line: " << source[i].line << std::endl;
+					error = true;
+					continue;
+				}
+			}else{
+				this->code[ptr].param[0] = 0;
+				this->code[ptr].param[1] = Hexidecimal::convert(source[i].param[1]);       // Constant value
 			}
-			if (this->code[ptr].param[2] == -1){
-				std::cerr << "Error: Invalid B register " << source[i].param[2] << std::endl;
-				std::cerr << "  line: " << source[i].line << std::endl;
-				error = true;
-				continue;
+
+			// B value
+			if (source[i].param[3][0] == 'r'){
+				this->code[ptr].param[2] = 1;
+				this->code[ptr].param[3] = GetRegisterID(source[i].param[3]);
+
+				if (this->code[ptr].param[0] == -1){
+					std::cerr << "Error: Invalid B register " << source[i].param[3] << std::endl;
+					std::cerr << "  line: " << source[i].line << std::endl;
+					error = true;
+					continue;
+				}
+			}else{
+				this->code[ptr].param[2] = 0;
+				this->code[ptr].param[3] = Hexidecimal::convert(source[i].param[3]);       // Constant value
 			}
-			if (this->code[ptr].param[3] == -1){
-				std::cerr << "Error: Invalid result register" << source[i].param[3] << std::endl;
+
+			// Result register
+			this->code[ptr].param[4] = GetRegisterID(source[i].param[4]);
+			if (this->code[ptr].param[4] == -1){
+				std::cerr << "Error: Invalid result register" << source[i].param[4] << std::endl;
 				std::cerr << "  line: " << source[i].line << std::endl;
 				error = true;
 				continue;
@@ -417,15 +436,15 @@ bool Function::Interpret(Segregate::StrCommands source){
 
 			if (source[i].param[2] == "add"){
 				this->code[ptr].param[1] = MathOpperation::add;
-			}else if (source[i].param[2] == "subtract"){
+			}else if (source[i].param[5] == "subtract"){
 				this->code[ptr].param[1] = MathOpperation::subtract;
-			}else if (source[i].param[2] == "multiply"){
+			}else if (source[i].param[5] == "multiply"){
 				this->code[ptr].param[1] = MathOpperation::multiply;
-			}else if (source[i].param[2] == "divide"){
+			}else if (source[i].param[5] == "divide"){
 				this->code[ptr].param[1] = MathOpperation::divide;
-			}else if (source[i].param[2] == "modulus"){
+			}else if (source[i].param[5] == "modulus"){
 				this->code[ptr].param[1] = MathOpperation::modulus;
-			}else if (source[i].param[2] == "exponent"){
+			}else if (source[i].param[5] == "exponent"){
 				this->code[ptr].param[1] = MathOpperation::exponent;
 			}else{
 				std::cerr << "Error: Invalid math operation \""<< source[i].param[2] << "\"" <<std::endl;
@@ -660,17 +679,17 @@ bool Function::Interpret(Segregate::StrCommands source){
 			}
 
 			// Operation
-			if       (source[i].param[1] == "&"){
+			if       (source[i].param[1] == "and"){
 				this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::AND);
-			}else if (source[i].param[1] == "|"){
+			}else if (source[i].param[1] == "or"){
 				this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::OR);
-			}else if (source[i].param[1] == "^"){
+			}else if (source[i].param[1] == "xor"){
 				this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::XOR);
-			}else if (source[i].param[1] == "<<"){
+			}else if (source[i].param[1] == "lshift"){
 				this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::LeftShift);
-			}else if (source[i].param[1] == ">>"){
+			}else if (source[i].param[1] == "rshift"){
 				this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::RightShift);
-			}else if (source[i].param[1] == "~"){
+			}else if (source[i].param[1] == "not"){
 				this->code[ptr].param[1] = static_cast<unsigned long long>(BitOperator::NOT);
 			}
 			// B
@@ -844,6 +863,153 @@ bool Function::Interpret(Segregate::StrCommands source){
 		}
 
 
+		// Spawn function instances
+		if (source[i].param[0] == "instance"){
+			if (source[i].param.size() < 2){
+				std::cerr << "Error: Undefined instance behaviour"<<std::endl;
+				std::cerr << "  line: " << source[i].line;
+				error = true;
+				continue;
+			}
+
+			if (source[i].param[1] == "create"){
+				if (source[i].param.size() < 4){
+					std::cerr << "Error: Not enough arguments to generate an instance"<<std::endl;
+					std::cerr << "  line: " << source[i].line;
+					error = true;
+					continue;
+				}
+
+				this->code[ptr].command = Commands::instance;
+				this->code[ptr].param.resize(3);
+				this->code[ptr].param[0] = 0;
+				this->code[ptr].param[1] = GetChildsID(source[i].param[2]);
+				this->code[ptr].param[2] = GetRegisterID(source[i].param[3]);
+
+				// Check function name validity
+				if (this->code[ptr].param[1] == -1){
+					std::cerr << "Error: Attempting to create instance of undefined function \"" << source[i].param[2] << "\"" << std::endl;
+				}
+
+				// Check register validity
+				if (this->code[ptr].param[2] == -1){
+					std::cerr << "Error: Supplied bad instance reference register "<<source[i].param[1] << std::endl;
+					std::cerr << "  line: " << source[i].line << std::endl;
+					error = true;
+					continue;
+				}
+
+				ptr++;
+				continue;
+			}
+
+			if (source[i].param[1] == "yeild"){
+				this->code[ptr].command = Commands::instance;
+				this->code[ptr].param.resize(3);
+				this->code[ptr].param[0] = 1;
+				this->code[ptr].param[1] = GetRegisterID(source[i].param[2]);
+				// this->code[ptr].param[2] = read over length
+
+				// Check register validity
+				if (this->code[ptr].param[1] == -1){
+					std::cerr << "Error: Supplied bad instance reference register "<<source[i].param[1] << std::endl;
+					std::cerr << "  line: " << source[i].line << std::endl;
+					error = true;
+					continue;
+				}
+
+				ptr++;
+				continue;
+			}
+
+			if (source[i].param[1] == "return"){
+				this->code[ptr].command = Commands::instance;
+				this->code[ptr].param.resize(1);
+				this->code[ptr].param[0] = 2;
+				this->code[ptr].param[1] = GetRegisterID(source[i].param[2]);
+				// this->code[ptr].param[2] = read over length
+
+				// Check register validity
+				if (this->code[ptr].param[1] == -1){
+					std::cerr << "Error: Supplied bad instance reference register "<<source[i].param[1] << std::endl;
+					std::cerr << "  line: " << source[i].line << std::endl;
+					error = true;
+					continue;
+				}
+
+				ptr++;
+				continue;
+			}
+
+			if (source[i].param[1] == "execute"){
+				this->code[ptr].command = Commands::instance;
+				this->code[ptr].param.resize(3);
+				this->code[ptr].param[0] = 3;
+				this->code[ptr].param[1] = GetRegisterID(source[i].param[2]);
+				this->code[ptr].param[2] = 0;
+
+				// Check register validity
+				if (this->code[ptr].param[1] == -1){
+					std::cerr << "Error: Supplied bad instance reference register "<<source[i].param[1] << std::endl;
+					std::cerr << "  line: " << source[i].line << std::endl;
+					error = true;
+					continue;
+				}
+
+				if (source[i].param.size() > 3){
+					if (source[i].param[3] == "main"){
+						this->code[ptr].param[2] = 1;
+					}else{
+						std::cerr << "Error: Invalid extra execution argument \"" << source[i].param[3] << '"' << std::endl;
+						std::cerr << "  line: " << source[i].line << std::endl;
+						error = true;
+						continue;
+					}
+				}
+
+				ptr++;
+				continue;
+			}
+
+
+			std::cerr << "Error: Invalid instance action \"" << source[i].param[1] << '"' << std::endl;
+			std::cerr << "  line: " << source[i].line;
+			error = true;
+			continue;
+		}
+
+
+		if (source[i].param[0] == "local"){
+			if (source[i].param.size() < 2){
+				std::cerr << "Error: Not enought arguments" << std::endl;
+				std::cerr << "  line: " << source[i].line << std::endl;
+				error = true;
+				continue;
+			}
+
+			this->code[ptr].command = Commands::local;
+			this->code[ptr].param.resize(2);
+			this->code[ptr].param[0] = GetRegisterID(source[i].param[1]);
+			this->code[ptr].param[1] = 0;
+
+			if (source[i].param.size() > 2){
+				if (source[i].param[2] == "parent"){
+					this->code[ptr].param[1] = 1;
+				}else if (source[i].param[2] == "local"){
+					this->code[ptr].param[1] = 0;
+				}else{
+					std::cerr << "Error: Invalid local data type \"" << source[i].param[2] << "\"" << std::endl;
+					std::cerr << "  line: " << source[i].line;
+					error = true;
+					continue;
+				}
+			}
+
+			ptr++;
+			continue;
+		}
+
+
 		std::cerr << "Error: Invalid Command '" << source[i].param[0] << "'"<<std::endl;
 		std::cerr << "  line: "<<source[i].line<<std::endl;
 		error = true;
@@ -924,6 +1090,7 @@ bool Function::SimplifyIF(){
 				this->code[i].param[1] = j;
 			}
 			this->code[j].command = Commands::blank;
+			this->code[j].param.reserve(0);
 		}
 
 	}
@@ -1059,6 +1226,60 @@ bool Function::SimplifyLoop(){
 	return true;
 };
 
+bool Function::SimplifyInstance(){
+	unsigned long length = this->code.size();
+	bool found = false;
+	long depth = 0;
+	bool error = false;
+
+	// Remember if statements and loops have already been resolved
+
+	// Change instance yeilds
+	for (unsigned long i=0; i<length; i++){
+		if (
+			this->code[i].command == Commands::instance &&
+			( this->code[i].param[0] == 1 || this->code[i].param[0] == 2 ) // yeild/return
+		){
+			found = false;
+			depth = 1;
+
+			for (unsigned long j=i+1; j<length; j++){
+				if (
+					this->code[j].command == Commands::instance &&
+					( this->code[j].param[0] == 1 || this->code[j].param[0] == 2 ) // yeild/return
+				){
+					depth += 1;
+					continue;
+				}
+
+				if (this->code[j].command == Commands::END){
+					depth -= 1;
+				}
+
+				if (depth == 0){
+					this->code[i].param[2] = j;
+
+					// Erase the end point
+					this->code[j].command = Commands::stop; // On return, do not over extend
+					this->code[j].param.reserve(0);
+
+					found = true;
+					break;
+				}
+			}
+
+			if (!found){
+				std::cerr << "Error: Unable to find end" << std::endl;
+				std::cerr << "  line: " << this->code[i].line << std::endl;
+				error = true;
+				continue;
+			}
+		}
+	}
+
+	return !error;
+}
+
 bool Function::CheckBlocks(){
 	unsigned long length = this->code.size();
 	bool error = false;
@@ -1083,6 +1304,9 @@ bool Function::Parse(Segregate::StrCommands src){
 		return false;
 	}
 	if (this->SimplifyIF() == false){
+		return false;
+	}
+	if (this->SimplifyInstance() == false){
 		return false;
 	}
 	if (this->CheckBlocks() == false){

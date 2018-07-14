@@ -76,7 +76,7 @@ int main(int argc, char* argv[]){
     Thread::Pool pool(0);
 
     // Start execution
-    Instance root(&entry, nullptr);
+    Instance root(&entry, nullptr, &pool);
     Thread::Job first;
     first.ptr = &root;
     first.cursor = 0;

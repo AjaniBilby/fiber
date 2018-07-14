@@ -1,7 +1,5 @@
 #pragma once
 
-#include "instance.hpp"
-
 #include <thread>
 #include <vector>
 #include <mutex>
@@ -15,9 +13,9 @@
 
 namespace Thread{
 	struct Job{
-		Instance *ptr        = nullptr;
-		unsigned long cursor = 0;
-	};
+    void *ptr            = nullptr;
+    unsigned long cursor = 0;
+  };
 
 	struct JobResult{
 		bool found;
@@ -90,12 +88,12 @@ namespace Thread{
 
 	class Pool{
 		private:
-			Schedule anonymous;
+			void WakeAll();
 
-			std::vector<Worker *> worker;
+			std::vector<Worker*> worker;
 			unsigned long workers;
 
-			void WakeAll();
+			Schedule anonymous;
 
 		public:
 			/*

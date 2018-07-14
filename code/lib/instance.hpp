@@ -7,7 +7,6 @@
 
 
 #include "./function.hpp"
-#include "./instance.hpp"
 #include "./thread.hpp"
 #include "./memory.hpp"
 
@@ -18,22 +17,27 @@ class Instance{
   public:
     int cursor = -1;
     Register handle[12];
-    void Execute(int cursor);
+    void Execute(unsigned long cursor);
 
     bool assigned = false;
     int workerID; // Which 'thread' is this instance locked to
 
-    Instance(Function *reference, Instance *caller);
+    Instance(Function *reference, Instance *caller, Thread::Pool *pool);
     bool IsChild(Instance *ptr);
+
+    int returnPos;    // The point to go back to once completed
+    int yeildPos;     // The point to go back to once a value has been found
+
+    unsigned long long GetLocalSpace();
 
   private:
     Instance *parent;
     Function *ref;
+    Thread::Pool *pool;
 
-    std::vector<Instance *> children;
+    unsigned long long localMemory; // Points to the
 
-    int returnPos;    // The point to go back to once completed
-    int yeildPos;     // The point to go back to once a value has been found
+    std::vector<Instance *> child;
 
     void CmdSet(Action *act);
     void CmdSS(Action *act);
@@ -48,6 +52,8 @@ class Instance{
     void CmdComp(Action *act);
     void CmdLComp(Action *act);
     void CmdBit(Action *act);
+    unsigned long CmdInstance(Action *act, unsigned long cursor);
+    void CmdLocal(Action *act);
 };
 
 
