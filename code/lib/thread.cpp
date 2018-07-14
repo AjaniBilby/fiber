@@ -87,6 +87,24 @@ namespace Thread{
 		res.found = false;
 		return res;
 	};
+
+
+	void Schedule::Recall(void *ptr){
+		this->active.lock();
+
+		unsigned long length = this->data.capacity();
+		for (unsigned long i=0; i<length; i++){
+			if (this->empty[i] == false){
+				if (this->data[i].ptr == ptr){
+					this->empty[i] = true;
+				}
+			}
+		}
+
+		this->active.unlock();
+	}
+
+
 	unsigned long Schedule::JobCount(){
 		return this->jobs;
 	};
@@ -136,6 +154,10 @@ namespace Thread{
 	unsigned int Worker::JobCount(){
 		return this->work.JobCount();
 	};
+
+	void Worker::Recall(void *ptr){
+		this->work.Recall(ptr);
+	}
 };
 
 
@@ -245,34 +267,36 @@ namespace Thread{
 
 		this->awake = true;
 
-		std::cout << "Thread ["<<this->id<<"]: Processing"<<std::endl;
-
 		// Repeat until no task is found
 		while (true){
 
 
 			// Find a job from either own work load or anonymous
 			//   Priorities own work over anonoymous
-			std::cout << "Thread ["<<this->id<<"]: Job hunting"<<std::endl;
 			res = this->work.Search();
 			if (res.found == false){
-				std::cout << "  no designated work" << std::endl;
 				res = this->anonymous->Search();
 
 				// Claim the anonymous instance
 				if (res.found){
 					target = reinterpret_cast<Instance*>(res.result.ptr);
+					target->sensitive.lock();
 					target->workerID = this->id;
 					target->assigned = true;
-					std::cout << "  found undesignated work" << std::endl;
+					target->sensitive.unlock();
 				}
 			}else{
-				std::cout << "  found designated work" << std::endl;
 				target = reinterpret_cast<Instance *>(res.result.ptr);
 			}
 
 			if (res.found == true){
-				std::cout << "  found" <<std::endl;
+				// If the task is to destory the instance
+				//  Do that instead of execution
+				if (res.result.conclude){
+					target->Destory();
+					continue;
+				}
+
 				target->Execute(res.result.cursor);
 				res.found = false;
 
@@ -280,9 +304,22 @@ namespace Thread{
 				continue;
 			}else{
 				this->awake = false;
-				std::cout << " thread decay"<<std::endl;
 				break;
 			}
 		}
 	};
+
+
+	void Pool::Recall(void *ptr){
+		Instance *target = reinterpret_cast<Instance *>(ptr);
+		target->sensitive.lock();
+
+		this->anonymous.Recall(ptr);
+
+		if (target->assigned){
+			this->worker[ target->workerID ]->Recall(ptr);
+		}
+
+		target->sensitive.unlock();
+	}
 }

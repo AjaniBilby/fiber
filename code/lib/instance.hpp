@@ -30,12 +30,23 @@ class Instance{
 
     unsigned long long GetLocalSpace();
 
+    /*
+      Prevent's instance from futther execution and returning
+    */
+    void Destory();
+
+    bool HasDestoryed();
+
+    // Stop multiple sensitive operations happening at once
+    std::recursive_mutex sensitive;
   private:
     Instance *parent;
     Function *ref;
     Thread::Pool *pool;
 
-    unsigned long long localMemory; // Points to the
+    unsigned long long localMemory; // Points to the local memory segment
+
+    bool connected; // Whether it's parent has cut execution
 
     std::vector<Instance *> child;
 

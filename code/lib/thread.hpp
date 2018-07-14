@@ -15,6 +15,7 @@ namespace Thread{
 	struct Job{
     void *ptr            = nullptr;
     unsigned long cursor = 0;
+		bool conclude        = false;
   };
 
 	struct JobResult{
@@ -28,7 +29,7 @@ namespace Thread{
 			std::vector<Job> data;
 			std::vector<bool> empty;
 
-			std::mutex active;
+			std::recursive_mutex active;
 			unsigned long lastFound = 0;
 			unsigned long jobs = 0;
 
@@ -40,6 +41,9 @@ namespace Thread{
 				@param job - task details
 			*/
 			void Dispatch(Job job);
+
+			void Recall(void *ptr);
+
 			/*
 				Search for a job
 				Only results jobs that are able to be processed by the requestor
@@ -78,6 +82,8 @@ namespace Thread{
 				return this->awake;
 			};
 
+			void Recall(void *ptr);
+
 			/*
 				Returns the number of assigned jobs
 			*/
@@ -106,6 +112,12 @@ namespace Thread{
 				@param workerID - which worker if any the task is targeted at
 			*/
 			void Dispatch(Job task, bool targeted, unsigned int workerID);
+
+			/*
+				Destories all tasks aimed at a specific instance
+			*/
+			void Recall(void* ptr);
+
 			/*
 				Stops program exiting before workers have finished all of their work
 			*/
