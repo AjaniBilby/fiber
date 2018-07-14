@@ -174,14 +174,14 @@ namespace Thread{
 					break;
 				}
 			}
-		}
+		}else{
+			if (workerID > workers){
+				std::cerr << "Error: Attempting to assign task to invalid worker" << std::endl;
+				return;
+			}
 
-		if (workerID > workers){
-			std::cerr << "Error: Attempting to assign task to invalid worker" << std::endl;
-			return;
+			this->worker[workerID]->Assign(task);
 		}
-
-		this->worker[workerID]->Assign(task);
 	};
 
 	bool Pool::Active(){
@@ -243,6 +243,8 @@ namespace Thread{
 
 		this->awake = true;
 
+		std::cout << "Thread ["<<this->id<<"]: Processing"<<std::endl;
+
 		// Repeat until no task is found
 		while (true){
 
@@ -267,6 +269,7 @@ namespace Thread{
 			if (res.found == true){
 				std::cout << "  found" <<std::endl;
 				target->Execute(res.result.cursor);
+				res.found = false;
 
 				// Find next job
 				continue;

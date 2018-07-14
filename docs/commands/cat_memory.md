@@ -52,18 +52,6 @@ Change the mode of a register, while keeping the same information stored (Re-enc
 
 ---
 
-## Math
-Applies a mathematic function to two registers storing the result in a third
-
-| Attribute Name | Descirption
-|:--|:--
-| Value A | Register
-| Value B | Register
-| Operation | add, subtract, multiply, divide, modulus, exponent
-| Result | Register
-
----
-
 ## Move
 Duplicates a section of memory to a different location
 
@@ -98,18 +86,6 @@ Compares byte by byte two chunks of memory
 | Length | Register (number of bytes)
 | Result | Register (true=1 | false=0)
 | Edian | little/big
-
----
-
-## bit
-Does a bit wise operation on two registers
-
-| Attribute Name | Descirption
-|:--|:--
-| Value A | Register
-| Opperator | and/or/xor/lshift/rshift/not
-| Value B  | Register / or a static value
-| Result | Register
 
 ---
 

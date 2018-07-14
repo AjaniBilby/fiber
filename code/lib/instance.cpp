@@ -18,7 +18,7 @@ void Instance::Execute (unsigned long cursor ){
   while (cursor < length){
     act = &this->ref->code[cursor];
 
-    std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
+    // std::cout << act->line << " > Command[" << act->command << ']' << std::endl;
 
 
     // Siphon specific behaviour
