@@ -21,16 +21,13 @@
 
 # Setup values
   # ASCII "A"
-  set rC 41
+  set rC 0x41
 
   # String length
-  set rB 1
-
-  # Increment amount
-  set rD 1
+  set rB 0x1
 
   # End point value 'Z'
-  set rE 5A
+  set rE 0x5A
 
   mem alloc rA rB
 
@@ -42,7 +39,7 @@ loop
   ss out rA rB
 
   # Increment for next char
-  math rC add rD rC
+  math rC add 0x1 rC
 
   compare rE < rC rF
   if rF
@@ -50,7 +47,6 @@ loop
   else
     continue 0
   end
-
 end
 
 stop

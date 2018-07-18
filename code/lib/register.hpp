@@ -59,6 +59,7 @@ class Register{
     unsigned long long int read();
     void write(unsigned long long int val);
     void Translate(RegisterMode toMode);
+    std::string toString();
 };
 int GetRegisterID(std::string str);
 

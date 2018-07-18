@@ -17,6 +17,8 @@ bool FLAG_TIME = false;
 
 
 int main(int argc, char* argv[]){
+	unsigned int threads = 0;
+
 	if (ValidTypeSizing() == false){
 		std::cerr << std::endl << "Error: Sizing error obstructing execution" << std::endl;
 		return 1;
@@ -36,10 +38,20 @@ int main(int argc, char* argv[]){
 
 	// Read flags
 	for (int i=0; i<argc; i++){
-		if (argv[i][0] == '-'){
-			if (argv[i][1] == 't'){
-				FLAG_TIME = true;
+
+		// -time
+		if (argv[i][0] == '-' && argv[i][1] == 't' && argv[i][2] == 'i' && argv[i][3] == 'm' && argv[i][4] == 'e'){
+			FLAG_TIME = true;
+		}
+
+		// -thread
+		if (argv[i][0] == '-' && argv[i][1] == 't' && argv[i][2] == 'h' && argv[i][3] == 'r' && argv[i][4] == 'e' && argv[i][5] == 'a' && argv[i][6] == 'd'){
+			if (argc <= i+1){
+				std::cout << "Missing thread flag argument" << std::endl;
+				return 0;
 			}
+
+			threads = std::atoi(argv[i+1]);
 		}
 	}
 
@@ -70,25 +82,26 @@ int main(int argc, char* argv[]){
 
 	// Mount the data into a function tree
 	Function entry ("_root_",0,0);
-	if (entry.Parse( Segregate::Fragment(std::string(fileData)) ) == false){
+	if ( entry.Parse( Segregate::Fragment(std::string(fileData)) ) == false ){
 		std::cerr << "Error: Failed to interpret" << std::endl;
-	}else{
-		Thread::Pool pool(0);
-
-		// Start execution
-		Instance root(&entry, nullptr, &pool);
-		Thread::Job first;
-		first.ptr = &root;
-		first.cursor = 0;
-		pool.Dispatch(first, false, 0);
-
-
-		// Show startup profile
-		// std::cout << "Threads: " << pool.ThreadCount() << std::endl << std::endl;
-
-		pool.Wedge();
-		std::cout << std::endl;
+		return 0;
 	}
+	if ( entry.PostProcess() == false ){
+		std::cerr << "Error: Failed to process interpretation" << std::endl;
+		return 0;
+	}
+
+	Thread::Pool pool(threads);
+
+	// Start execution
+	Instance root(&entry, nullptr, &pool, nullptr);
+	Thread::Job first;
+	first.ptr = &root;
+	first.cursor = 0;
+	pool.Dispatch(first, false, 0);
+
+	pool.Wedge();
+	std::cout << std::endl;
 
 	return 0;
 }

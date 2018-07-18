@@ -19,22 +19,22 @@
 
 # Construct string
 	# Define the length of the string
-	set rC 4
+	set rC 0x4
 
 	# Allocate space for string
 	mem alloc rA rC
 
 
-set rB 40
-set rE 50
+set rB 0x40
+set rE 0x50
 
 compare rB > rE rB
 if rB
 	# Build string 'Yes\n'
-	set rD 0A736559
+	set rD 0x0A736559
 else
 	# Build string 'No \n'
-	set rD 0A206F4E
+	set rD 0x0A206F4E
 end
 
 

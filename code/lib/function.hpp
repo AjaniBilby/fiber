@@ -36,7 +36,7 @@ enum Commands {
 	// Register actions
 	translate,
 	mode,
-	copy,
+	Clone,
 	move,
 	set,
 
@@ -66,6 +66,13 @@ enum Commands {
 
 	instance,
 	local,
+
+	Yeild,
+	Return,
+
+	data,
+	stringify,
+	write,
 };
 
 enum MathOpperation {
@@ -93,7 +100,7 @@ enum BitOperator{
 
 struct Action {
 	Commands command;                          // Command enum ID
-	std::vector<unsigned long long int> param; // Parameters encoded as ints
+	std::vector<uint64_t> param; // Parameters encoded as ints
 	int line;
 };
 
@@ -111,12 +118,12 @@ class Function{
 		unsigned long localSize;
 
 		std::vector<Function*> child;
-
 		std::vector<Action> code;
 
 		Function(std::string name, unsigned long local, unsigned long result);
 		bool Parse(Segregate::StrCommands source);
 		int GetChildsID(std::string str); // Get the function ID number of a child
+		bool PostProcess();
 	private:
 		bool Interpret(Segregate::StrCommands source);
 		bool SimplifyIF();

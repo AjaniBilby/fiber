@@ -123,26 +123,61 @@ namespace Thread{
 	Worker::Worker(unsigned int id, Schedule *unassignedHeap){
 		this->id = id;
 		this->anonymous = unassignedHeap;
-		this->awake = false;
 		this->thread = nullptr;
+		this->active = false;
 	};
 
+	bool Worker::IsActive(){
+		this->sensitive.lock();
+
+		if (this->active){
+			this->sensitive.unlock();
+			return true;
+		}
+
+		this->sensitive.unlock();
+		return false;
+	}
+
 	bool Worker::Wake(){
-		if (this->awake == false){
-			this->awake = true;
+		this->sensitive.lock();
+
+		if (this->active == false){
 
 			if (this->thread != nullptr){
+				std::string msg;
+				msg = "Thread["+std::to_string(this->id)+"] instance already exists, deleting...\n";
+				std::cout << msg;
 				delete this->thread;
 			}
 
+			this->active = true;
 			this->thread = new std::thread(&Worker::Process, this);
 			this->thread->detach();
 
+			this->sensitive.unlock();
 			return true;
-		}else{
-			return false;
 		}
+
+		this->sensitive.unlock();
+		return false;
 	};
+
+	void Worker::Sleep(){
+		this->sensitive.lock();
+
+		this->active = false;
+		if (this->thread != nullptr){
+			delete this->thread;
+			this->thread = nullptr;
+		}
+
+		this->sensitive.unlock();
+
+		std::string msg;
+		msg = "Thread["+std::to_string(this->id)+"]: Sleep\n";
+		std::cout << msg;
+	}
 
 	void Worker::Assign(Job task){
 		this->work.Dispatch(task);
@@ -151,13 +186,13 @@ namespace Thread{
 		this->Wake();
 	};
 
+	void Worker::Recall(void *ptr){
+		this->work.Recall(ptr);
+	};
+
 	unsigned int Worker::JobCount(){
 		return this->work.JobCount();
 	};
-
-	void Worker::Recall(void *ptr){
-		this->work.Recall(ptr);
-	}
 };
 
 
@@ -209,8 +244,12 @@ namespace Thread{
 	};
 
 	bool Pool::Active(){
+		std::string msg;
+
 		for (int i=0; i<workers; i++){
-			if (this->worker[i]->Active() == true){
+			if (this->worker[i]->IsActive() == true){
+				msg = "Active thread["+std::to_string(i)+"]\n";
+				std::cout << msg;
 				return true;
 			}
 		}
@@ -236,23 +275,33 @@ namespace Thread{
 
 	void Pool::Wedge(){
 		bool active = true;
-		unsigned long temp;
+		unsigned long remain;
+
+		std::string msg;
 
 		while (active){
 			active = this->Active();
 
 			if (!active){
-				temp = this->JobCount();
-				if (temp > 0){
+				std::cout << "No threads active" << std::endl;
+				remain = this->JobCount();
+				if (remain > 0){
+					msg = "Warn: All threads were asleep while " + std::to_string(remain) + " jobs remained\n";
+					std::cerr << msg;
+
 					this->WakeAll();
 					active = true;
 
 					continue;
 				}
+
+				std::cout << "  closing..." << std::endl;
 			}
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
+
+		std::cout << "Wedge end" << std::endl;
 	};
 };
 
@@ -265,11 +314,12 @@ namespace Thread{
 		JobResult res;
 		Instance *target;
 
-		this->awake = true;
+		std::string msg;
 
 		// Repeat until no task is found
 		while (true){
-
+			// Reset
+			res.found = false;
 
 			// Find a job from either own work load or anonymous
 			//   Priorities own work over anonoymous
@@ -297,16 +347,19 @@ namespace Thread{
 					continue;
 				}
 
-				target->Execute(res.result.cursor);
-				res.found = false;
-
+				msg = "Thread["+std::to_string(this->id)+"]: Executing\n";
+				std::cout << msg;
+				target->Execute(res.result.cursor, res.result.data, res.result.size);
+				msg = "Thread["+std::to_string(this->id)+"]: Executed\n";
+				std::cout << msg;
 				// Find next job
 				continue;
 			}else{
-				this->awake = false;
 				break;
 			}
 		}
+
+		this->Sleep();
 	};
 
 

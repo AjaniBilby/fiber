@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <vector>
+#include <string>
 #include <mutex>
 
 
@@ -16,6 +17,9 @@ namespace Thread{
     void *ptr            = nullptr;
     unsigned long cursor = 0;
 		bool conclude        = false;
+
+		void *data           = nullptr;
+		unsigned long size   = 0;
   };
 
 	struct JobResult{
@@ -56,32 +60,35 @@ namespace Thread{
 
 	class Worker{
 		private:
-			bool awake = false;
-			void Process();
-
 			Schedule work;
 			Schedule *anonymous;
 			unsigned long id = 0;
 
+			std::recursive_mutex sensitive;
 			std::thread *thread;
+			bool active;
 
+			void Sleep();
+			void Process();
 		public:
 			Worker(unsigned int id, Schedule *unassignedHeap);
 			/*
 				Will ensure that the worker's thread has not collapsed
 			*/
 			bool Wake();
+
+			/*
+				Returns if the worker is active or not
+			*/
+			bool IsActive();
+
 			/*
 				Gives the worker a job to put in it's queue
 			*/
 			void Assign(Job task);
 			/*
-				Returns if the worker is active or not
+				Removes any tasks involving the specified instance address
 			*/
-			bool Active(){
-				return this->awake;
-			};
-
 			void Recall(void *ptr);
 
 			/*

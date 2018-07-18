@@ -11,7 +11,7 @@
 #include <string>
 
 namespace Hexidecimal {
-  long int convert(std::string input);
+  unsigned long long convert(std::string input);
 }
 
 

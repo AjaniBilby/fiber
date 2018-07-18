@@ -26,12 +26,12 @@ namespace Memory{
   };
 
   void Duplicate(void *destination, void *source, size_t space){
-    char *a = static_cast<char*>(source);
-    char *b = static_cast<char*>(destination);
+    char *a = static_cast<char*>(destination);
+    char *b = static_cast<char*>(source);
 
     // Copy memory byte per byte
     while (space > 0){
-      b = a;
+      *a = *b;
 
       // Shift reference
       space -= 1;

@@ -1,27 +1,9 @@
-function main 8 0
-
-	function fib 24 8
-		stop
+function main 0 0
+	function one 0 0
 	end
 
-	mode rA uint64
-	mode rB uint64
+	function two 0 0
+	end
 
-	mode rD uint64
-
-	local rA
-	set rB 8
-
-	# Build string 'Yes\n'
-	set rD 0A736559
-	push rD rA
-
-	set rB 8
-	ss out rA rB
+	instance create one rB
 end
-
-
-# Run main function
-instance create main rA
-# Manually parse arguments here
-instance execute rA

@@ -1,12 +1,12 @@
 #include "hexidecimal.hpp"
 
 namespace Hexidecimal {
-  long int convert(std::string input){
-    unsigned long int x;
+  unsigned long long convert(std::string input){
+    unsigned long long x;
     std::stringstream temp;
     temp << std::hex << input;
 
     temp >> x;
-    return static_cast<long int>(x);
-  }
+    return x;
+  };
 }
