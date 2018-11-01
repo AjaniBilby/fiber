@@ -32,7 +32,7 @@ class Bytecode{
 		std::size_t next(std::size_t idx);             // Get the index of the next command
 		
 		// Add a new command with parameters to he end of the code
-		void append(Action act);
+		void append(Interpreter::Action act);
 		
 		// Change jumps from being relative to commands to being exact 'true' indexes
 		void simplifyJumps();
