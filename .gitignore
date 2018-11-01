@@ -12,3 +12,8 @@
 # Fiber
 *.fib
 !/example/*.fib
+
+# IDE
+.vscode/*
+# Include some settings to ensure consistent layout
+!.vscode/settings.json

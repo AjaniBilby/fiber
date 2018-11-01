@@ -1,9 +1,0 @@
-function main 0 0
-	function one 0 0
-	end
-
-	function two 0 0
-	end
-
-	instance create one rB
-end

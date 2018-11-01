@@ -8,9 +8,11 @@ set MemSafe=%1
 shift
 set Optimize=%1
 shift
+set OS=%1
+shift
 
 rem Construct the command as the build command is configured
-set Command=clang++ "./code/main.cpp" -o "./fiber.exe" -std=c++14 -Xclang -flto-visibility-public-std
+set Command=clang++ "./source/main.cpp" -o "./fiber.exe" -std=c++14 -Xclang -flto-visibility-public-std
 
 
 
@@ -20,68 +22,57 @@ set Command=clang++ "./code/main.cpp" -o "./fiber.exe" -std=c++14 -Xclang -flto-
 
 
 
-if /I "%Optimize%"=="y" goto SetOptimize
-if /I "%Optimize%"=="n" goto EndQstOptmz
-:QuestionDebug
-set Optimize=
-set /P Optimize=Optimize (longer build time)? (y/n) %=%
+if /I "%Optimize%"=="y" (
+	set Command=%Command% -O2
+)
 
-if /I "%Optimize%"=="y" goto SetOptimize
-if /I "%Optimize%"=="n" goto EndQstOptmz
+if /I "%MemSafe%"=="y" (
+	set Command=%Command% -D MemorySafe
+)
 
-echo Invalid input "%Optimize%"
-goto SetOptimize
+rem Default natic
+if /I "%OS%"=="windows" (
+	set Command=%Command% -target x86_64-pc-windows-msvc
+	goto FinishOSSelection
+)
 
+if /I "%OS%"=="mac" (
+	set Command=%Command% -target x86_64-apple-darwin-msvc
+	goto FinishOSSelection
+)
 
-:SetOptimize
-set Command=%Command% -O2
-goto EndQstOptmz
+if /I "%OS%"=="linux" (
+	set Command=%Command% -target x86_64-pc-linux-msvc
+	goto FinishOSSelection
+)
 
-:EndQstOptmz
-
-
-
-
-
-
-if /I "%MemSafe%"=="y" goto SetMemSafe
-if /I "%MemSafe%"=="n" goto EndQstMemSafe
-:QuestionMemSafe
-set MemSafe=
-set /P MemSafe=Build with memory safety? (y/n) %=%
-
-if /I "%MemSafe%"=="y" goto SetMemSafe
-if /I "%MemSafe%"=="n" goto EndQstMemSafe
-
-echo Invalid input "%MemSafe%"
-goto QuestionMemSafe
-
-
-:SetMemSafe
-set Command=%Command% -D MemorySafe
-goto EndQstMemSafe
-
-:EndQstMemSafe
+echo Error: Unknown OS %OS%, presuming native
+echo.
+set OS=Native
+:FinishOSSelection
 
 
 
 
 
-:end
+:display
 echo Settings;
 IF /I "%MemSafe%"=="y" (
-  echo  - Memory Safety : Yes
+	echo  - Memory Safety : Yes
 ) ELSE (
-  echo  - Memory Safety : No
+	echo  - Memory Safety : No
 )
 IF /I "%Optimize%"=="y" (
-  echo  - Optimized     : Yes
+	echo  - Optimized     : Yes
 ) ELSE (
-  echo  - Optimized     : No
+	echo  - Optimized     : No
 )
 echo  - 64bit         : Yes
-echo  - OS            : Native
+echo  - OS            : %OS%
 
+
+
+:compile
 echo.
 echo %Command% %1
 %Command% %1
