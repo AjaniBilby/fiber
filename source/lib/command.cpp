@@ -45,6 +45,9 @@ std::string ToString(Command cmd){
 			return "mode";
 		case Command::stop:
 			return "exit";
+		case Command::jump:
+			// For internal use only
+			return "Err(CMD:jump)";
 	}
 
 	return "Err";
