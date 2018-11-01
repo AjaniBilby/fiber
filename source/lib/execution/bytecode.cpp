@@ -30,18 +30,18 @@ std::size_t Bytecode::next(std::size_t index){
 	return index + this->data[index].cmd.params;
 };
 
-void Bytecode::append(Command cmd, std::vector<unsigned long> params){
+void Bytecode::append(Action act){
 	unsigned long    i = this->data.size();
-	unsigned long size = params.size();
+	unsigned long size = act.params.size();
 	
 	// Create space for the element header + params
 	this->data.resize( this->data.size()+size+1 );
 	
 	// Set the element header
-	this->data[i].cmd = { reinterpret_cast<Command>(cmd), size };
+	this->data[i].cmd = { reinterpret_cast<Command>(act.cmd), size };
 	// Set the individual parameters
 	for (unsigned long j = 0; j<size; j++){
-		this->data[j+1].value = params[j];
+		this->data[j+1].value = act.params[j];
 	}
 };
 

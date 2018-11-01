@@ -2,13 +2,13 @@
 
 namespace Tokenize{
 	// Remove empty elements of an array in one pass
-	std::vector< std::vector<std::string> > RemoveEmpty(std::vector< std::vector<std::string> > arr){
+	std::vector< RawAction > RemoveEmpty(std::vector< RawAction > arr){
 		unsigned long size   = arr.size();
 		unsigned long offset = 0;
 		
 		for (unsigned long i=0; i<size; i++){
 			// This element is empty, increase the shift amount to cover it
-			if (arr[i].size() == 0){
+			if (arr[i].param.size() == 0){
 				offset ++;
 				continue;
 			}
@@ -50,10 +50,10 @@ namespace Tokenize{
 		return out;
 	};
 	
-	std::vector< std::vector<std::string> > SplitLines(std::string str){
+	std::vector< RawAction > SplitLines(std::string str){
 		str += "\n"; // Add a trailing space to ensure no final characters are missed
 		
-		std::vector< std::vector<std::string> > out;
+		std::vector< RawAction > out;
 		unsigned long size = str.size();
 		unsigned long len = 0;
 		unsigned long j = 0;
@@ -68,7 +68,7 @@ namespace Tokenize{
 					continue;
 				}
 				
-				out.push_back( SplitParameters(str.substr(j, len)) );
+				out.push_back( RawAction{ SplitParameters(str.substr(j, len)), i+1 } );
 				j = i+1;
 			}
 		}
