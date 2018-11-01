@@ -54,7 +54,7 @@ void Bytecode::simplifyJumps(){
 		if (this->data[i].cmd.cmd == Command::jump){
 			// Change the jump commands amount to an exact element index
 			//                                       Reinterprete the param to be signed to allow backwards jumps
-			this->data[i+1].value = this->find(num + static_cast<long>(this->data[i+1].value))._trueIndex;
+			this->data[i+1].value = this->find(num + static_cast<long>(this->data[i+1].value));
 		}
 		
 		i += this->data[i].cmd.params;
