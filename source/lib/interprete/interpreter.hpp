@@ -5,6 +5,8 @@
 #include "./../command.hpp"
 #include "./tokenize.hpp"
 
+#include <iostream>
+#include <sstream>
 #include <vector>
 #include <string>
 
