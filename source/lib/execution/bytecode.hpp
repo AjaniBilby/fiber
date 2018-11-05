@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./../interprete/interpreter.hpp"
+#include "./../typebase.hpp"
 #include "./../command.hpp"
 
 #include <string>
@@ -24,16 +24,23 @@ struct BytecodeReference{
 };
 
 
+struct Action{
+	Command cmd;
+	size_t line;
+	std::vector<uint64> param;
+};
+
+
 class Bytecode{
 	public:
 		std::size_t      find(std::size_t commandNum); // Find the true index of the command
 		BytecodeElement* at(std::size_t index);        // Get a reference to the element at the 'true' index
-		
+
 		std::size_t next(std::size_t idx);             // Get the index of the next command
-		
+
 		// Add a new command with parameters to he end of the code
-		void append(Interpreter::Action act);
-		
+		void append(Action act);
+
 		// Change jumps from being relative to commands to being exact 'true' indexes
 		void simplifyJumps();
 	private:

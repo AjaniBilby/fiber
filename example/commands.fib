@@ -1,0 +1,40 @@
+# Set command variations
+set @rA @rB
+set @rA local
+set @rA parse
+set &rA 0x1
+set &rA 24u
+set &rA -24i
+set &rA 0.24f
+
+# Math
+#  A = A + B
+math &rA + 1i
+math &rA + 1u
+math &rA + 1.0f
+math &rA - 1i
+math &rA - 1u
+math &rA - 1.0f
+math &rA * 1i
+math &rA * 1u
+math &rA * 1.0f
+math &rA / 1i
+math &rA / 1u
+math &rA / 1.0f
+math &rA % 1i
+math &rA % 1u
+math &rA % 1.0f
+#  Addresses can only add and subtract
+math @rA + 1i
+math @rA + 1u
+math @rA - 1i
+math @rA - 1u
+
+# Return
+rtrn
+
+
+func test 2u
+{
+	rtrn
+}

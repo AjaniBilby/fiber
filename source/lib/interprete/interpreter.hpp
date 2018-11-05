@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./../execution/bytecode.hpp"
 #include "./../execution/register.hpp"
 #include "./../typebase.hpp"
 #include "./../command.hpp"
@@ -13,6 +14,14 @@
 
 namespace Interpreter{
 	typedef std::vector<std::string> Parameters;
+
+	enum class MathOpperation{
+		addition,
+		subtract,
+		divide,
+		multiply,
+		modulus
+	};
 
 	enum class OpperandType{
 		Unknown,
@@ -35,14 +44,8 @@ namespace Interpreter{
 
 			std::string typeToString();
 	};
-	
-	
-	struct Action{
-		Command cmd;
-		uint64 line;
-		std::vector<uint64> param;
-	};
 };
 
 
+#include "./function.hpp"
 #include "./interpreter.cpp"

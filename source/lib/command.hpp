@@ -7,6 +7,7 @@ enum class Command: unsigned short{
 	stop,            // exit
 	jump,            // jump
 	set,             // set
+	mode,            // mode
 	math,            // math
 	gate,            // if
 	gateOther,       // else
@@ -21,7 +22,6 @@ enum class Command: unsigned short{
 	blockOpen,       // {
 	blockClose,      // }
 	standardStream,  // ss
-	mode,            // mode
 	memalloc,        // malloc
 	function,        // func
 	rtrn,            // return
