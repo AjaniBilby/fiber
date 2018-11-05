@@ -6,3 +6,4 @@ bool FLAG_TIME = false;
 unsigned long DEFAULT_QUEUE_LENGTH = 100;
 
 #define THREAD_OWN_TASK_PRIORITY true
+#define MemorySafe false
