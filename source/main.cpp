@@ -1,14 +1,13 @@
+#include "./flags.hpp"
+
 #include "./lib/interprete/tokenize.hpp"
 #include "./lib/interprete/function.hpp"
-#include "./lib/typebase.hpp"
+
+#include "./lib/execution/thread.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-#define FIBER_VERSION "v0.0.0a"
-bool FLAG_TIME = false;
-
 
 
 
@@ -59,16 +58,23 @@ int main(int argc, char* argv[]){
 		std::cerr << "Invalid file: " << argv[1] << std::endl;
 		return 1;
 	}
-	
+
 	auto tokens = Tokenize::SplitLines(fileData);
-	auto root = Function("root", tokens);
+
+	std::cout << "Tokens;" << std::endl;
+	unsigned long size = tokens.size();
+	for (unsigned long i=0; i<size; i++){
+		std::cout << tokens[i].line << ": " << ToString(tokens[i].param) << std::endl;
+	}
+	std::cout << std::endl;
+
+	Function root = Function("root", tokens, 0, nullptr);
 	fileData.resize(0); // Delete the original file cache
-	
+
 	if (root.valid == false){
 		std::cerr << "Unable to execute due to error(s)" << std::endl;
 		return 1;
 	}
-	
 
 	return 0;
 }
