@@ -1,16 +1,16 @@
 #include "./function.hpp"
 
-Function::Function(std::string name, std::vector<RawAction> tokens, unsigned long domainSize, Function* owner){
+Function::Function(std::string name, std::vector<RawAction> tokens, size_t domainSize, Function* owner){
 	this->domain = domainSize;
 	this->parent = owner;
 	this->valid = true;
 	this->name = name;
 
-
-
+	// Raise function definitions
+	std::vector<RawAction> next;
 	// Interpret raw tokens
-	unsigned long size = tokens.size();
-	for (unsigned long i=0; i<size; i++){
+	size_t size = tokens.size();
+	for (size_t i=0; i<size; i++){
 		// Forward any child functions through to a new child
 		if (tokens[i].param[0] == "func"){
 			std::vector<RawAction> forward;
@@ -71,6 +71,16 @@ Function::Function(std::string name, std::vector<RawAction> tokens, unsigned lon
 			continue;
 		}
 
+		next.push_back(tokens[i]);
+	}
+
+
+
+	// Interpret raw tokens
+	std::vector<Action> cmd;
+	tokens = next;
+	size = tokens.size();
+	for (size_t i=0; i<size; i++){
 		Action temp;
 		temp = Interpreter::Convert(tokens[i], this);
 
@@ -79,7 +89,14 @@ Function::Function(std::string name, std::vector<RawAction> tokens, unsigned lon
 			return;
 		}
 
-		this->code.append(temp);
+		cmd.push_back(temp);
+	}
+
+
+	// Compact the code
+	size = cmd.size();
+	for (size_t i=0; i<size; i++){
+		this->code.append(cmd[i]);
 	}
 	this->code.simplifyJumps();
 

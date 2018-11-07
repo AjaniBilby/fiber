@@ -14,9 +14,9 @@ class Function{
 		std::vector<Function> child;
 
 		bool valid;
-		unsigned long domain;
+		size_t domain;
 
-		Function(std::string name, std::vector<RawAction> tokens, unsigned long domainSize, Function* owner=nullptr);
+		Function(std::string name, std::vector<RawAction> tokens, size_t domainSize, Function* owner=nullptr);
 };
 
 
