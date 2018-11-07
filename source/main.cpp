@@ -5,6 +5,8 @@
 
 #include "./lib/execution/thread.hpp"
 
+#include <thread>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -20,23 +22,56 @@ int main(int argc, char* argv[]){
 	}
 
 
+	size_t hardwareThreads = std::thread::hardware_concurrency();
+	if (hardwareThreads != 0){
+		THREAD_COUNT = hardwareThreads;
+	}
+
+
 	if (argc < 2){
 		std::cout << "Missing file input" << std::endl;
 		return 0;
 	}
 
-	// Version
-	if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 'v'){
-		std::cout << FIBER_VERSION << std::endl;
-		return 0;
-	}
-
 	// Read flags
-	for (int i=0; i<argc; i++){
-		if (argv[i][0] == '-'){
-			if (argv[i][1] == 't'){
-				FLAG_TIME = true;
+	for (size_t i=1; i<argc; i++){
+
+		// -thread X
+		if (
+			argv[i][0] == '-' &&
+			argv[i][1] == 't' &&
+			argv[i][2] == 'h' &&
+			argv[i][3] == 'r' &&
+			argv[i][4] == 'e' &&
+			argv[i][5] == 'a' &&
+			argv[i][6] == 'd'
+		){
+			if (argc <= i+1){
+				std::cerr << "Error: Missing thread count parameter" << std::endl;
+				return 1;
 			}
+
+			THREAD_COUNT = std::stoull(argv[i+1]);
+			i++; // consumed next parameter
+
+			std::cout << "Threads: " << THREAD_COUNT << std::endl;
+
+			continue;
+		}
+
+		// -version
+		if (
+			argv[i][0] == '-' &&
+			argv[i][1] == 'v' &&
+			argv[i][2] == 'e' &&
+			argv[i][3] == 'r' &&
+			argv[i][4] == 's' &&
+			argv[i][5] == 'i' &&
+			argv[i][6] == 'o' &&
+			argv[i][7] == 'n'
+		){
+			std::cout << FIBER_VERSION << std::endl;
+			continue;
 		}
 	}
 
@@ -60,16 +95,9 @@ int main(int argc, char* argv[]){
 	}
 
 	auto tokens = Tokenize::SplitLines(fileData);
-
-	std::cout << "Tokens;" << std::endl;
-	unsigned long size = tokens.size();
-	for (unsigned long i=0; i<size; i++){
-		std::cout << tokens[i].line << ": " << ToString(tokens[i].param) << std::endl;
-	}
-	std::cout << std::endl;
-
-	Function root = Function("root", tokens, 0, nullptr);
 	fileData.resize(0); // Delete the original file cache
+	Function root = Function("root", tokens, 0, nullptr);
+	tokens.resize(0);
 
 	if (root.valid == false){
 		std::cerr << "Unable to execute due to error(s)" << std::endl;
