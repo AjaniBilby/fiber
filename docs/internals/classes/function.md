@@ -10,3 +10,6 @@ A function merely describes the executable actions, and has no dynamic bahavior 
 The code its self is stored within [bytecode](./bytecode.md) which has custom functions to help execution.
 
 Child functions are stored within a vector which is part of the function it's self; this removes chances for reference errors to occur when functions are moved around during inital interpretation.
+
+## Important Terms
+**Domain:** The size of the local memory for any instance of this function.

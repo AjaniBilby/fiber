@@ -8,7 +8,6 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 	// Raise function definitions
 	std::vector<RawAction> next;
-	// Interpret raw tokens
 	size_t size = tokens.size();
 	for (size_t i=0; i<size; i++){
 		// Forward any child functions through to a new child
@@ -23,6 +22,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				break;
 			}
 
+			// Read the function's domain size
 			auto lsize = Interpreter::Opperand(tokens[i].param[2]);
 			if ( lsize.valid == false || (lsize.type != Interpreter::OpperandType::Bytes && lsize.type != Interpreter::OpperandType::Uint) ){
 				std::cerr << "Error: Invalid function domain size. Domain size must be specified via a hex or uint value" << std::endl;
@@ -34,6 +34,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				break;
 			}
 
+			// If the next line is not an open bracket
 			if (i+1 >= size || tokens[i+1].param[0] != "{"){
 				std::cerr << "Error: Invalid function definition, missing opening bracket on new line" << std::endl;
 				std::cerr << "  line: " << tokens[i].line << std::endl;
@@ -42,7 +43,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			}
 
 			// Find the closing bracket at the same depth
-			forward.resize(0);
+			forward.resize(0); // tokens between the brackets
 			depth = 1;
 			unsigned long j=i+2;
 			for (; j<size; j++){
@@ -59,6 +60,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				forward.push_back(tokens[j]);
 			}
 
+			// If an end bracket was not able to be found
 			if (tokens[j].param[0] != "}"){
 				std::cerr << "Error: Invalid function definition, missing closing bracket" << std::endl;
 				std::cerr << "  line: " << tokens[i].line << std::endl;
@@ -66,6 +68,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				break;
 			}
 
+			// Parse the gathered information forward to a child function
 			this->child.push_back( Function(tokens[i].param[1], forward, lsize.data.uint64, this) );
 			i = j;
 			continue;

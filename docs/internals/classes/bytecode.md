@@ -9,6 +9,3 @@ Thus there is no explicit data needed to define one element as being the start o
 
 This however produces the problem of traveling backwards, such as to the begining of a loop. This is an unsolveable problem if you are trying to itterate from your current position, as upposed to running through the whole bytecode to find the position one a head of the current.  
 
-To mediate this issue we further compile any jump commands.  
-Once a bytecode block has been completely interpreted we can then simplify the jump commands. We conver the number of commands to jump between to the number of elements to jump between, once that is completed the number is further simplifed to being an exact element reference, rather than a relative jump.
-

@@ -22,7 +22,7 @@ class Register{
 		};
 
 
-		// Changing the directed value
+		// Iterate on the existing value
 		template <typename T>
 		Register& operator+=(T value){
 			if (this->isInt){
@@ -244,6 +244,7 @@ class Register{
 			return *this;
 		};
 
+		// Set value to
 		template <typename T>
 		void set(T value){
 			if (this->isInt){
@@ -531,6 +532,7 @@ class Register{
 
 
 
+// Get the register ID using a given input
 int8 GetRegisterID(std::string str){
 	if (str.size() != 2){
 		return -1;

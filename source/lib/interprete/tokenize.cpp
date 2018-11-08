@@ -24,6 +24,7 @@ namespace Tokenize{
 		return arr;
 	};
 
+	// Split a given line into individual words
 	std::vector<std::string> SplitParameters(std::string str){
 		str += " "; // Add a trailing space to ensure no final characters are missed
 
@@ -56,6 +57,8 @@ namespace Tokenize{
 		return out;
 	};
 
+	// Split a text into lines and works
+	//  (ignoring/removing comment or blank lines)
 	std::vector< RawAction > SplitLines(std::string str){
 		str += "\n"; // Add a trailing space to ensure no final characters are missed
 

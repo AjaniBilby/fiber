@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
 
 
 	if (argc < 2){
-		std::cout << "Missing file input" << std::endl;
+		std::cerr << "Missing file input" << std::endl;
 		return 0;
 	}
 
@@ -94,6 +94,7 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
 
+	// Interprete data
 	auto tokens = Tokenize::SplitLines(fileData);
 	fileData.resize(0); // Delete the original file cache
 	Function root = Function("root", tokens, 0, nullptr);
@@ -103,6 +104,20 @@ int main(int argc, char* argv[]){
 		std::cerr << "Unable to execute due to error(s)" << std::endl;
 		return 1;
 	}
+
+
+	// Start up execution space
+	Thread::Pool workSpace(THREAD_COUNT);
+
+	// Create dumny instances to check the event loops are working
+	Instance dumy;
+	for (size_t i=0; i<THREAD_COUNT*4; i++){
+		workSpace.Issue({&dumy, 0});
+	}
+
+
+	// Blocks until all workers have no remaining work
+	workSpace.WaitUntilDone();
 
 	return 0;
 }

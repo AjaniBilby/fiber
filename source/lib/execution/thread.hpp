@@ -11,9 +11,6 @@
 namespace Thread{
 	class Worker{
 		public:
-			// Is the worker currently active?
-			bool awake;
-
 			//     This work's unique ID (unqiue to pool)
 			//                      Address of unassigned work queue
 			//                                                       Address of thread pool
@@ -25,9 +22,12 @@ namespace Thread{
 			void IssueToWorkPool(EventLoop::Task task);
 
 			// Wake up the worker, ensuring the worker won't create a double ganger
-			void Wake();
+			// Return: did the thread just wake?
+			bool Wake();
 
 			bool HasTasks();
+
+			bool IsActive();
 		private:
 			// Own unique work queue
 			EventLoop::Schedule queue;
@@ -36,8 +36,8 @@ namespace Thread{
 			// Pointer to thread pool
 			void* threadPool;
 
-			// Is the Worker attempting to change state?
-			std::mutex changeState;
+			// Is the worker currently active? (locked when active)
+			std::mutex activity;
 
 			// This worker's unqiue ID (relative to threadpool)
 			size_t workerID;

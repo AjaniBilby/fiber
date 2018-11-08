@@ -25,6 +25,7 @@ namespace Interpreter{
 		this->type = OpperandType::Unknown;
 		this->valid = false;
 
+		// Register Address opperand
 		if (str[0] == '@'){
 			this->type = OpperandType::RegisterAddress;
 			this->data.int8 = GetRegisterID(str.substr(1, 2));
@@ -32,6 +33,7 @@ namespace Interpreter{
 			this->data.uint64 = this->data.int8;
 			return;
 		}
+		// Register value opperand
 		if (str[0] == '&'){
 			this->type = OpperandType::RegisterValue;
 			this->data.int8 = GetRegisterID(str.substr(1, 2));
@@ -42,6 +44,7 @@ namespace Interpreter{
 
 		uint64 length = str.size();
 
+		// Intake hexidecimal data as byte-wise data
 		if (length > 2){
 			if (str[0] == '0' && str[1] == 'x'){
 				this->type = OpperandType::Bytes;
@@ -52,19 +55,24 @@ namespace Interpreter{
 				return;
 			}
 		}
+
+		// Intake standard neumeric representations
 		if (length > 1){
+			// Int
 			if (str[length-1] == 'i'){
 				this->type = OpperandType::Int;
 				this->data.int64 = stoll(str.substr(0, length-1));
 				this->valid = true;
 				return;
 			}
+			// Uint
 			if (str[length-1] == 'u'){
 				this->type = OpperandType::Uint;
 				this->data.uint64 = stoull(str.substr(0, length-1));
 				this->valid = true;
 				return;
 			}
+			// Float (actually double)
 			if (str[length-1] == 'f'){
 				this->type = OpperandType::Float;
 				this->data.float64 = stod(str.substr(0, length-1));
@@ -74,6 +82,7 @@ namespace Interpreter{
 		}
 	};
 
+	// Convert a class' opperand type to string
 	std::string Opperand::typeToString(){
 		switch(this->type){
 			case Interpreter::OpperandType::Uint:
@@ -407,6 +416,7 @@ namespace Interpreter{
 		return out;
 	}
 
+
 	Action InterpRtrn(RawAction act){
 		Action out;
 		out.cmd = Command::rtrn;
@@ -427,7 +437,7 @@ namespace Interpreter{
 	}
 
 
-
+	// Forwards interpretation to dedicated functions
 	Action Convert(RawAction act, Function* context){
 		Action out;
 		out.cmd = Command::invalid;
