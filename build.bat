@@ -27,7 +27,7 @@ if /I "%Optimize%"=="y" (
 )
 
 if /I "%MemSafe%"=="y" (
-	set Command=%Command% -D MemorySafe
+	set Command=%Command% -D MemorySafe=true
 )
 
 rem Default natic

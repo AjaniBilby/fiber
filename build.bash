@@ -8,7 +8,7 @@ Command="clang++ source/main.cpp -std=c++14 -pthread -o fiber.out"
 echo "Ensure memory safety? (y/n)"
 read MemSafe
 if [ "$MemSafe" = "y" ]; then
-	Command="$Command -D MemorySafe"
+	Command="$Command -D MemorySafe=true"
 fi
 echo "Optimized build? (y/n)"
 read Optimize
