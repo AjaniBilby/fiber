@@ -52,7 +52,8 @@
 		"sstream": "cpp",
 		"string": "cpp",
 		"xthread": "cpp",
-		"mutex": "cpp"
+		"mutex": "cpp",
+		"deque": "cpp"
 	},
 
 	"files.eol": "\n",

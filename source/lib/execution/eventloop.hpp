@@ -4,7 +4,7 @@
 
 #include "./../typebase.hpp"
 
-#include <vector>
+#include <deque>
 #include <mutex>
 
 
@@ -23,11 +23,8 @@ namespace EventLoop{
 			void Issue(Task task);
 			Task Find(); // Return a value rather than a reference incase the slot is instantly refilled after finding it
 			bool HasTasks();
-			size_t size();
 		private:
-			size_t progress;
-
-			std::vector<Task> queue;
+			std::deque<Task> queue;
 			std::mutex activity;
 	};
 };

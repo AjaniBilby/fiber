@@ -7,10 +7,6 @@ Thread::Worker::Worker(size_t wID, EventLoop::Schedule* wPool, void* tPool){
 	this->workerID = wID;
 	this->workPool = wPool;               // Receive unassigned work pool
 	this->threadPool = tPool;
-
-	if (this->queue.size() != DEFAULT_QUEUE_LENGTH){
-		std::cerr << "Error: Worker queue failed to initilize" << std::endl;
-	}
 };
 
 void Thread::Worker::Issue(EventLoop::Task task){
@@ -55,7 +51,7 @@ bool Thread::Worker::IsActive(){
 };
 
 void Thread::Worker::Process(){
-	this->activity.lock();
+	std::lock_guard<std::mutex> lck( this->activity );
 
 	std::string str = "Thread " + std::to_string(this->workerID) + " waking...\n";
 	std::cout << str;
@@ -98,15 +94,11 @@ void Thread::Worker::Process(){
 		// Execute the task
 		reinterpret_cast<Instance*>(task.reference)->Process(task.position);
 		std::cout << "  Processing...\n";
-		std::this_thread::sleep_for( std::chrono::milliseconds(100) );
+		std::this_thread::sleep_for( std::chrono::milliseconds(250) );
 	}
 
 
 	// NOTE: MUST EXECUTE
-	// Processing complete
-	// Let the worker fall asleep
-	this->activity.unlock();
-
 	str = "Thread " + std::to_string(this->workerID) + " sleeping...\n";
 	std::cout << str;
 
