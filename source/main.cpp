@@ -109,15 +109,20 @@ int main(int argc, char* argv[]){
 	// Start up execution space
 	Thread::Pool workSpace(THREAD_COUNT);
 
+	std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
+
 	// Create dumny instances to check the event loops are working
 	Instance dumy;
-	for (size_t i=0; i<THREAD_COUNT*4; i++){
+	for (size_t i=0; i<THREAD_COUNT*1000; i++){
 		workSpace.Issue({&dumy, 0});
 	}
 
 
 	// Blocks until all workers have no remaining work
 	workSpace.WaitUntilDone();
+
+	// Clean up all threads
+	workSpace.Close();
 
 	return 0;
 }

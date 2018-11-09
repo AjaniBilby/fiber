@@ -53,7 +53,8 @@
 		"string": "cpp",
 		"xthread": "cpp",
 		"mutex": "cpp",
-		"deque": "cpp"
+		"deque": "cpp",
+		"condition_variable": "cpp"
 	},
 
 	"files.eol": "\n",

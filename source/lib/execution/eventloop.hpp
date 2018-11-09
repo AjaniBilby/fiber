@@ -12,8 +12,11 @@ namespace EventLoop{
 	struct Task{
 		void* reference;
 		size_t position;
+	};
 
-		bool empty;
+	struct SearchResult{
+		Task data;
+		bool found;
 	};
 
 	class Schedule{
@@ -21,7 +24,7 @@ namespace EventLoop{
 			Schedule();
 
 			void Issue(Task task);
-			Task Find(); // Return a value rather than a reference incase the slot is instantly refilled after finding it
+			SearchResult Find(); // Return a value rather than a reference incase the slot is instantly refilled after finding it
 			bool HasTasks();
 		private:
 			std::deque<Task> queue;

@@ -11,26 +11,28 @@ namespace EventLoop{
 		std::lock_guard<std::mutex> lck( this->activity );
 
 		// Add the task to the queue
-		task.empty = false; // Ensure that the slot is marked as in use
 		this->queue.push_back(task);
 
 		return;
 	};
 
-	Task Schedule::Find(){
+	SearchResult Schedule::Find(){
 		// Prevent other threads from altering while this task is active
 		std::lock_guard<std::mutex> lck( this->activity );
 
-		Task out;
+		SearchResult out;
 
+		// The queue is empty
+		// Therefor there will be no valid results
 		if (this->queue.empty() == true){
-			out.empty = true;
+			out.found = false;
 			return out;
 		}
 
-		out = this->queue.front();
-		this->queue.pop_front();
-
+		// Parse result
+		out.found = true;               // State found result
+		out.data = this->queue.front(); // Cache the result
+		this->queue.pop_front();        // Remove the task from the queue
 
 		return out;
 	};

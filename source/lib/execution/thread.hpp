@@ -2,6 +2,7 @@
 
 #include "./eventloop.hpp"
 
+#include <condition_variable>
 #include <chrono>
 #include <string>
 #include <vector>
@@ -11,6 +12,12 @@
 namespace Thread{
 	class Worker{
 		public:
+			// This worker's unqiue ID (relative to threadpool)
+			size_t workerID;
+
+			bool shouldClose;
+			bool active;
+
 			//     This work's unique ID (unqiue to pool)
 			//                      Address of unassigned work queue
 			//                                                       Address of thread pool
@@ -24,10 +31,10 @@ namespace Thread{
 			// Wake up the worker, ensuring the worker won't create a double ganger
 			// Return: did the thread just wake?
 			bool Wake();
+			// Force the thread to join with the caller's thread
+			void Close();
 
 			bool HasTasks();
-
-			bool IsActive();
 		private:
 			// Own unique work queue
 			EventLoop::Schedule queue;
@@ -36,14 +43,16 @@ namespace Thread{
 			// Pointer to thread pool
 			void* threadPool;
 
-			// Is the worker currently active? (locked when active)
-			std::mutex activity;
-
-			// This worker's unqiue ID (relative to threadpool)
-			size_t workerID;
+			std::thread *sysThread;
 
 			// Work through queue
 			void Process();
+
+			EventLoop::SearchResult FindTask();
+
+			// Used for notifying the threads of events
+			std::condition_variable ping;
+			std::mutex mtx;
 	};
 
 
@@ -56,6 +65,7 @@ namespace Thread{
 
 			bool HasActivity();
 			void WaitUntilDone();
+			void Close();
 		private:
 			std::vector<Worker*> thread;
 			size_t threads;

@@ -4,9 +4,13 @@
 
 
 Thread::Worker::Worker(size_t wID, EventLoop::Schedule* wPool, void* tPool){
-	this->workerID = wID;
-	this->workPool = wPool;               // Receive unassigned work pool
-	this->threadPool = tPool;
+	this->workerID    = wID;
+	this->workPool    = wPool; // Receive unassigned work pool
+	this->threadPool  = tPool;
+
+	this->shouldClose = false;
+	this->active      = false;
+	this->sysThread   = new std::thread(&Thread::Worker::Process, this);
 };
 
 void Thread::Worker::Issue(EventLoop::Task task){
@@ -22,88 +26,97 @@ void Thread::Worker::IssueToWorkPool(EventLoop::Task task){
 };
 
 bool Thread::Worker::Wake(){
-
 	// If the thread isn't currently active
-	if (this->IsActive() == false){
-		// Revive the thread
-		std::thread (&Thread::Worker::Process, this).detach();
-
+	if (this->active == false){
+		this->active = true;
+		std::unique_lock<std::mutex> lck(this->mtx);
+		this->ping.notify_all();
 		return true;
 	}
 
 	return false;
 };
+void Thread::Worker::Close(){
+	this->shouldClose = true;
+
+	// If the thread is suspended wake it so it can decay
+	this->Wake();
+
+	// Merge the thread to this one
+	this->sysThread->join();
+};
 
 bool Thread::Worker::HasTasks(){
 	return this->queue.HasTasks();
 };
-bool Thread::Worker::IsActive(){
-	// Is activity already locked?
-	if (this->activity.try_lock() == true){
-		// Succeded in locking, therefor it is not active
 
-		this->activity.unlock(); // Alow the thread to lock it's activity in the future
-		return false;
-	}
+EventLoop::SearchResult Thread::Worker::FindTask(){
+	EventLoop::SearchResult res;
+	res.found = false;
 
-	// The thread is currently active
-	return true;
+	// See flags.hpp for pre-processor variable definition
+	#if (THREAD_OWN_TASK_PRIORITY)
+		// Search for work in designated heap
+		res = this->queue.Find();
+		if (res.found == true){
+			return res;
+		}
+
+		// No result
+		// Each in unallocated work pool
+		res = this->workPool->Find();
+		if (res.found == true){
+			// Claim the new instance as it's own
+			reinterpret_cast<Instance*>(res.data.reference)->owner = this;
+			return res;
+		}
+	#else
+		// No result
+		// Each in unallocated work pool
+		res = this->workPool->Find();
+		if (res.found == true){
+			// Claim the new instance as it's own
+			reinterpret_cast<Instance*>(res.data.reference)->owner = this;
+			return res;
+		}
+
+		// Search for work in designated heap
+		res = this->queue.Find();
+		if (res.found == true){
+			return res;
+		}
+	#endif
+
+	return res;
 };
 
 void Thread::Worker::Process(){
-	std::lock_guard<std::mutex> lck( this->activity );
+	this->active = true;
+	std::unique_lock<std::mutex> lck(this->mtx);
 
-	std::string str = "Thread " + std::to_string(this->workerID) + " waking...\n";
-	std::cout << str;
-
-	EventLoop::Task task;
+	EventLoop::SearchResult result;
 	while (true){
+		result = this->FindTask();
 
-		// See flags.hpp for pre-processor variable definition
-		#if (THREAD_OWN_TASK_PRIORITY)
-			// Search for work in designated heap
-			task = this->queue.Find();
-			if (task.empty == true){
-				// Search for work in unclaimed work pool
-				task = this->workPool->Find();
+		if (result.found == true){
+			// Execute the task
+			reinterpret_cast<Instance*>(result.data.reference)->Process(result.data.position);
+		}else{
+			// Suspend the thread until notified of new tasks
+			this->active = false;
+			this->ping.wait(lck);
+			this->active = true;
 
-				// Unable to find a task in own pool or unclaimed
-				if (task.empty == true){
-					break;
-				}
-
-				// Claim the new instance as it's own
-				reinterpret_cast<Instance*>(task.reference)->owner = this;
-			}
-		#else
-			task = this->workPool->Find();
-			if (task.empty == true){
-				// Find new work in own queue
-				task = this->queue.Find();
-
-				// No work found in own pool or unclaimed
-				if (task.empty == true){
-					break;
-				}
+			if (this->shouldClose){
+				break;
 			}else{
-				// Claim the new instance as it's own
-				reinterpret_cast<Instance*>(task.reference)->owner = this;
+				continue;
 			}
-		#endif
-
-		// Execute the task
-		reinterpret_cast<Instance*>(task.reference)->Process(task.position);
-		std::cout << "  Processing...\n";
-		std::this_thread::sleep_for( std::chrono::milliseconds(250) );
+		}
 	}
 
-
-	// NOTE: MUST EXECUTE
-	str = "Thread " + std::to_string(this->workerID) + " sleeping...\n";
-	std::cout << str;
-
 	return;
-}
+};
 
 
 
@@ -120,13 +133,12 @@ Thread::Pool::Pool(size_t threadCount): unclaimed(){
 };
 
 void Thread::Pool::Issue(EventLoop::Task task){
+	// Post task to unclaimed queue
 	this->unclaimed.Issue(task);
-	std::this_thread::sleep_for( std::chrono::milliseconds(100) );
 
-	// Find a sleeping worker and wait them in the hope they might consume the task
+	// Find a suspended work and issue the task to them
 	for (size_t i=0; i<this->threads; i++){
 		if (this->thread[i]->Wake() == true){
-			// Succesfully woken one thread, then stop
 			return;
 		}
 	}
@@ -156,7 +168,7 @@ bool Thread::Pool::HasActivity(){
 	// Check if any worker has work remaining and is asleep
 	bool foundAwakeWorker = false;
 	for (size_t i=0; i<this->threads; i++){
-		if (this->thread[i]->IsActive() == false){
+		if (this->thread[i]->active == false){
 			if (this->thread[i]->HasTasks() == true){
 				msg = "Warn: Thread[" + std::to_string(i) + "] has fallen asleep while dedicated work is waiting.\n";
 				std::cerr << msg;
@@ -201,14 +213,13 @@ void Thread::Pool::WaitUntilDone(){
 		}
 	}
 
+
 	// Check if any workers are active every 100ms
 	for (size_t i=0; i<this->threads; i++){
-		if (this->thread[i]->IsActive() == true){
+		if (this->thread[i]->active == true){
 			goto repeat;
 		}
 	}
-
-	std::clog << "Warn: No workers active\n";
 
 
 	// If no workers are active check the work pool before closing
@@ -216,4 +227,10 @@ void Thread::Pool::WaitUntilDone(){
 	if (this->HasActivity()){
 		goto repeat;
 	};
+};
+
+void Thread::Pool::Close(){
+	for (size_t i=0; i<this->threads; i++){
+		this->thread[i]->Close();
+	}
 };
