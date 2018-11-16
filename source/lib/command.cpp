@@ -19,8 +19,6 @@ std::string ToString(Command cmd){
 			return "else";
 		case Command::compare:
 			return "compare";
-		case Command::longCompare:
-			return "longCompare";
 		case Command::bitwise:
 			return "bitwise";
 		case Command::initilize:
@@ -54,70 +52,48 @@ std::string ToString(Command cmd){
 };
 
 Command CommandFrom(std::string str){
-	if (str == "exit"){
+	if        (str == "exit"){
 		return Command::stop;
-	}
-	if (str == "jump"){
+	} else if (str == "jump"){
 		// For internal use only
 		return Command::invalid;
-	}
-	if (str == "set"){
+	} else if (str == "set"){
 		return Command::set;
-	}
-	if (str == "math"){
+	} else if (str == "math"){
 		return Command::math;
-	}
-	if (str == "if"){
+	} else if (str == "if"){
 		return Command::gate;
-	}
-	if (str == "else"){
+	} else if (str == "else"){
 		return Command::gateOther;
-	}
-	if (str == "cmpr"){
+	} else if (str == "cmpr"){
 		return Command::compare;
-	}
-	if (str == "lcmpr"){
-		return Command::longCompare;
-	}
-	if (str == "bit"){
+	} else if (str == "bit"){
 		return Command::bitwise;
-	}
-	if (str == "init"){
+	} else if (str == "init"){
 		return Command::initilize;
-	}
-	if (str == "bind"){
+	} else if (str == "bind"){
 		return Command::bind;
-	}
-	if (str == "exec"){
+	} else if (str == "exec"){
 		return Command::execute;
-	}
-	if (str == "break"){
+	} else if (str == "break"){
 		return Command::blockExit;
-	}
-	if (str == "continue"){
+	} else if (str == "continue"){
 		return Command::blockRepeat;
-	}
-	if (str == "{"){
+	} else if (str == "{"){
 		return Command::blockOpen;
-	}
-	if (str == "}"){
+	} else if (str == "}"){
 		return Command::blockClose;
-	}
-	if (str == "ss"){
+	} else if (str == "ss"){
 		return Command::standardStream;
-	}
-	if (str == "mode"){
+	} else if (str == "mode"){
 		return Command::mode;
-	}
-	if (str == "malloc"){
+	} else if (str == "malloc"){
 		return Command::memalloc;
-	}
-	if (str == "func"){
+	} else if (str == "func"){
 		return Command::function;
-	}
-	if (str == "rtrn"){
+	} else if (str == "rtrn"){
 		return Command::rtrn;
 	}
-	
+
 	return Command::invalid;
 };

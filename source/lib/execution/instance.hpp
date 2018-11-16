@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include "./register.hpp"
+#include "./memory.hpp"
 #include "./thread.hpp"
 
 

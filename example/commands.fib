@@ -1,4 +1,8 @@
-# Set command variations
+# This will not execute
+# The purpose is to list every possible variable of every command
+# Not to actually execute
+
+# Set
 set @rA @rB
 set @rA local
 set @rA parse
@@ -9,18 +13,23 @@ set &rA 0.24f
 
 # Math
 #  A = A + B
+math &rA + &rB
 math &rA + 1i
 math &rA + 1u
 math &rA + 1.0f
+math &rA - &rB
 math &rA - 1i
 math &rA - 1u
 math &rA - 1.0f
+math &rA * &rB
 math &rA * 1i
 math &rA * 1u
 math &rA * 1.0f
+math &rA / &rB
 math &rA / 1i
 math &rA / 1u
 math &rA / 1.0f
+math &rA % &rB
 math &rA % 1i
 math &rA % 1u
 math &rA % 1.0f
@@ -33,7 +42,41 @@ math @rA - 1u
 # Return
 rtrn
 
+# Comparing
+cmpr @rA = @rB &rC
+cmpr @rA = &rB &rC
+cmpr &rA = &rB &rC
+cmpr &rA = @rB &rC
+cmpr @rA > @rB &rC
+cmpr @rA > &rB &rC
+cmpr &rA > &rB &rC
+cmpr &rA > @rB &rC
+cmpr @rA < @rB &rC
+cmpr @rA < &rB &rC
+cmpr &rA < &rB &rC
+cmpr &rA < @rB &rC
+cmpr &rA < 0.0f &rC
+cmpr &rA < 0.0i &rC
+cmpr &rA < 0.0u &rC
+cmpr &rA > 0.0f &rC
+cmpr &rA > 0.0i &rC
+cmpr &rA > 0.0u &rC
+cmpr &rA = 0.0f &rC
+cmpr &rA = 0.0i &rC
+cmpr &rA = 0.0u &rC
 
+# Gate
+if &rA
+{
+
+}
+else
+{
+
+}
+
+
+# Function definition
 func test 2u
 {
 	rtrn

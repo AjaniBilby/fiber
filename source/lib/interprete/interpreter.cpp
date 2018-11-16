@@ -106,7 +106,7 @@ namespace Interpreter{
 
 
 namespace Interpreter{
-	Action InterpMode(RawAction act){
+	inline Action InterpMode(RawAction act){
 		Action out;
 		out.cmd = Command::mode;
 		out.line = act.line;
@@ -168,7 +168,7 @@ namespace Interpreter{
 		return out;
 	}
 
-	Action InterpSet(RawAction act){
+	inline Action InterpSet(RawAction act){
 		Action out;
 		out.cmd = Command::set;
 		out.line = act.line;
@@ -256,7 +256,7 @@ namespace Interpreter{
 		return out;
 	};
 
-	Action InterpMath(RawAction act){
+	inline Action InterpMath(RawAction act){
 		Action out;
 		out.cmd = Command::math;
 		out.line = act.line;
@@ -356,7 +356,7 @@ namespace Interpreter{
 		return out;
 	}
 
-	Action InterpGate(RawAction act){
+	inline Action InterpGate(RawAction act){
 		Action out;
 		out.cmd = Command::gate;
 		out.line = act.line;
@@ -398,7 +398,7 @@ namespace Interpreter{
 
 		return out;
 	}
-	Action InterpGateOther(RawAction act){
+	inline Action InterpGateOther(RawAction act){
 		Action out;
 		out.cmd = Command::gateOther;
 		out.line = act.line;
@@ -416,8 +416,148 @@ namespace Interpreter{
 		return out;
 	}
 
+	inline Action InterpBlock(RawAction act){
+		Action out;
+		out.line = act.line;
 
-	Action InterpRtrn(RawAction act){
+		if (act.param.size() != 1){
+			std::cerr << "Error: Invalid number of arguments for block open/close command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(0);
+
+		if (act.param[0] == "{"){
+			out.cmd = Command::blockOpen;
+		}
+		if (act.param[0] == "}"){
+			out.cmd = Command::blockClose;
+		}
+
+
+		return out;
+	}
+
+	// Both long and short comparing
+	inline Action InterpCompare(RawAction act){
+		Action out;
+		out.cmd = Command::compare;
+		out.line = act.line;
+
+		// Check this line is actually valid and contains a command
+		if (act.param.size() != 5){
+			std::cerr << "Error: Invalid number of arguments for compare command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+
+		bool addressMode = false;
+
+		// Interp operand A
+		//  Check the opperand type is valid
+		auto opper = Interpreter::Opperand(act.param[1]);
+		if (opper.type == Interpreter::OpperandType::RegisterAddress){     // Valid opperand type
+			addressMode = true;
+		}else if (opper.type == Interpreter::OpperandType::RegisterValue){ // Valid opperand type
+		}else{                                                             // Invalid opperand type
+			std::cerr << "Error: Invalid opperand A; must be a register value or address." << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+
+		//  Check the data is valid
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid opperand A register." << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << out.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[0] = static_cast<uint64>(opper.type);
+		out.param[1] = opper.data.uint64;
+
+
+		// Opperator
+		if (act.param[2] == "<"){
+			out.param[0] = static_cast<uint64>(ComparisonOpperators::lesser);
+		}else if (act.param[2] == ">"){
+			out.param[0] = static_cast<uint64>(ComparisonOpperators::greater);
+		}else if (act.param[2] == "="){
+			out.param[0] = static_cast<uint64>(ComparisonOpperators::equal);
+		}else{
+			std::cerr << "Error: Invalid opperator for comparison" << std::endl;
+			std::cerr << "  arg : " << act.param[2] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+
+
+		// Interp operand B
+		//  Check the data type
+		opper = Interpreter::Opperand(act.param[3]);
+		if (opper.type == Interpreter::OpperandType::RegisterAddress){     // Valid type
+		}else if (opper.type == Interpreter::OpperandType::RegisterValue){ // Valid type
+		}else if (addressMode){                                                             // Invalid type
+			std::cerr << "Error: Invalid opperand B; must be a register value or address since A is an address." << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		//  Check the data is valid
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid opperand A register." << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << out.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[3] = static_cast<uint64>(opper.type);
+		out.param[4] = opper.data.uint64;
+
+
+		// Interp operand
+		//  Check the type is valid
+		opper = Interpreter::Opperand(act.param[4]);
+		if (opper.type == Interpreter::OpperandType::RegisterValue){ // Valid type
+		}else{                                                       // Invalid type
+			std::cerr << "Error: Invalid opperand C; must be a register value or address." << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		//  Check the data is valid
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid opperand C register." << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[5] = opper.data.uint64;
+
+
+		return out;
+	}
+
+	inline Action InterpRtrn(RawAction act){
 		Action out;
 		out.cmd = Command::rtrn;
 		out.line = act.line;
@@ -466,6 +606,14 @@ namespace Interpreter{
 				break;
 			case Command::mode:
 				out = InterpMode(act);
+				break;
+			case Command::compare:
+				out = InterpCompare(act);
+				break;
+			case Command::blockOpen:
+				// Overflow into blockClose
+			case Command::blockClose:
+				out = InterpBlock(act);
 				break;
 		}
 

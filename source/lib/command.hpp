@@ -2,6 +2,12 @@
 
 #include <string>
 
+enum class ComparisonOpperators: unsigned short{
+	greater,
+	lesser,
+	equal
+};
+
 enum class Command: unsigned short{
 	invalid,
 	stop,            // exit
@@ -12,7 +18,6 @@ enum class Command: unsigned short{
 	gate,            // if
 	gateOther,       // else
 	compare,         // cmpr
-	longCompare,     // lcmpr
 	bitwise,         // bit
 	initilize,       // init
 	bind,            // bind
