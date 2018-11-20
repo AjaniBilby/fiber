@@ -23,10 +23,6 @@ std::string ToString(Command cmd){
 			return "bitwise";
 		case Command::initilize:
 			return "init";
-		case Command::bind:
-			return "bind";
-		case Command::execute:
-			return "execute";
 		case Command::blockExit:
 			return "break";
 		case Command::blockRepeat:
@@ -42,7 +38,7 @@ std::string ToString(Command cmd){
 		case Command::mode:
 			return "mode";
 		case Command::stop:
-			return "exit";
+			return "stop";
 		case Command::jump:
 			// For internal use only
 			return "Err(CMD:jump)";
@@ -52,7 +48,7 @@ std::string ToString(Command cmd){
 };
 
 Command CommandFrom(std::string str){
-	if        (str == "exit"){
+	if        (str == "stop"){
 		return Command::stop;
 	} else if (str == "jump"){
 		// For internal use only
@@ -71,10 +67,6 @@ Command CommandFrom(std::string str){
 		return Command::bitwise;
 	} else if (str == "init"){
 		return Command::initilize;
-	} else if (str == "bind"){
-		return Command::bind;
-	} else if (str == "exec"){
-		return Command::execute;
 	} else if (str == "break"){
 		return Command::blockExit;
 	} else if (str == "continue"){

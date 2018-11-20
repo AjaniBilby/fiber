@@ -8,8 +8,8 @@ cmpr {A} {method} {B} {Result}
 | A | Method | B | Result |
 |:-:|:-:|:-:|:-:|
 | Register Value | ``=``, ``<``, or ``>`` | Register Value | Register Value
-| - | - | Register Address | -
-| - | - | Int | -
-| - | - | UInt | -
-| - | - | Float | -
-| Register Address | - | Register Address | -
+| • | • | Register Address | •
+| • | • | Int | •
+| • | • | UInt | •
+| • | • | Float | •
+| Register Address | • | Register Address | •

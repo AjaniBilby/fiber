@@ -8,12 +8,12 @@ set {target} {value}
 | Target | Value |
 |:-:|:-:|
 | Register Value | Register Value |
-| - | Register Address |
-| - | Float |
-| - | Int |
-| - | Uint |
-| - | Hex |
+| • | Register Address |
+| • | Float |
+| • | Int |
+| • | Uint |
+| • | Hex |
 | Register Address | Register Address |
-| - | Register Value |
-| - | Local |
-| - | Parse |
+| • | Register Value |
+| • | Local |
+| • | Parse |

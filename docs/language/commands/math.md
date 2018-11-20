@@ -8,10 +8,10 @@ set {A} {Opperation} {B}
 | A | Opperation | B |
 |:-:|:-:|:-:|
 | Register Value | ``+``, ``-``, ``*``, ``/``, or ``%`` | Register Value
-| - | - | Register Address
-| - | - | Int
-| - | - | Uint
-| - | - | Hex
+| • | • | Register Address
+| • | • | Int
+| • | • | Uint
+| • | • | Hex
 | Register Address | ``+``, or ``-`` | Int
-| - | - | Uint
+| • | • | Uint
 

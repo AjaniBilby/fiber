@@ -10,8 +10,8 @@ enum class ComparisonOpperators: unsigned short{
 
 enum class Command: unsigned short{
 	invalid,
-	stop,            // exit
-	jump,            // jump
+	jump,            // jump (internal use only)
+	stop,            // stop
 	set,             // set
 	mode,            // mode
 	math,            // math
@@ -20,8 +20,6 @@ enum class Command: unsigned short{
 	compare,         // cmpr
 	bitwise,         // bit
 	initilize,       // init
-	bind,            // bind
-	execute,         // exec
 	blockExit,       // break
 	blockRepeat,     // continue
 	blockOpen,       // {
