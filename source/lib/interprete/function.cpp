@@ -96,6 +96,85 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	}
 
 
+
+	// Let initilize consume required blocks
+	size = cmd.size();
+	// Find initilize command
+	for (size_t i=0; i<size; i++){
+		if (cmd[i].cmd == Command::initilize){
+
+			// Check it has a code block after it
+			if (i+1 >= size || cmd[i+1].cmd != Command::blockOpen){
+				std::cerr << "Error: Invalid initilization; missing preamble." << std::endl;
+				std::cerr << "  line: " << cmd[i].line << std::endl;
+			}
+
+
+			// Find the end of the preamble
+			size_t j=i+1;
+			size_t depth = 0;
+			for (; j<size; j++){
+				if (cmd[j].cmd == Command::blockOpen){
+					depth++;
+				}
+				if (cmd[j].cmd == Command::blockClose){
+					depth--;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+			if (j>=size || cmd[j].cmd != Command::blockClose){
+				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
+				std::cerr << "  line: " << cmd[i].line << std::endl;
+			}
+
+
+			// Check for the second code block
+			if (j+1 >= size || cmd[j+1].cmd != Command::blockOpen){
+				std::cerr << "Error : Invalid initilization; missing finishing code." << std::endl;
+				std::cerr << " line: " << cmd[i].line << std::endl;
+			}
+
+
+			// Find the end of the preamble
+			size_t k=j+1;
+			depth = 0;
+			for (; k<size; k++){
+				if (cmd[k].cmd == Command::blockOpen){
+					depth++;
+				}
+				if (cmd[k].cmd == Command::blockClose){
+					depth--;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+			if (k>=size || cmd[k].cmd != Command::blockClose){
+				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
+				std::cerr << "  line: " << cmd[i].line << std::endl;
+			}
+			cmd[k].cmd == Command::stop;
+
+
+			// Convert the necessary brackets
+			cmd[i+1].cmd = Command::jump;
+			cmd[i+1].param.resize(1);
+			cmd[i+1].param[0] = (j+1) - (i+1);
+			cmd[j].cmd = Command::jump;
+			cmd[j].param.resize(1);
+			cmd[j].param[0] = (k+1) - (j);
+			cmd[j+1].cmd = Command::stop;
+			cmd[j+1].param.resize(0);
+			cmd[k].cmd = Command::stop;
+			cmd[k].param.resize(0);
+		}
+	}
+
+
 	// Compact the code
 	size = cmd.size();
 	for (size_t i=0; i<size; i++){

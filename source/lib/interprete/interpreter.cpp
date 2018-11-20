@@ -714,6 +714,25 @@ namespace Interpreter{
 		return out;
 	};
 
+	inline Action InterpStop(RawAction act){
+		Action out;
+		out.cmd = Command::stop;
+		out.line = act.line;
+
+		if (act.param.size() != 1){
+			std::cerr << "Error: Invalid number of arguments for stop command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(0);
+
+
+		return out;
+	}
+
 
 	// Forwards interpretation to dedicated functions
 	Action Convert(RawAction act, Function* context){
@@ -727,31 +746,51 @@ namespace Interpreter{
 				std::cerr << "  line: " << act.line << std::endl;
 
 				break;
-			case Command::set:
-				out = InterpSet(act);
+
+			case Command::bitwise:
+				out = InterpBitwise(act);
 				break;
-			case Command::rtrn:
-				out = InterpRtrn(act);
+
+			case Command::blockOpen:
+				// Overflow into blockClose
+			case Command::blockClose:
+				out = InterpBlock(act);
 				break;
-			case Command::math:
-				out = InterpMath(act);
+
+			case Command::compare:
+				out = InterpCompare(act);
 				break;
+
+			// AKA IF
 			case Command::gate:
 				out = InterpGate(act);
 				break;
 			case Command::gateOther:
 				out = InterpGateOther(act);
 				break;
+
+			case Command::initilize:
+				out = InterpInitilize(act, context);
+				break;
+
+			case Command::math:
+				out = InterpMath(act);
+				break;
+
 			case Command::mode:
 				out = InterpMode(act);
 				break;
-			case Command::compare:
-				out = InterpCompare(act);
+
+			case Command::rtrn:
+				out = InterpRtrn(act);
 				break;
-			case Command::blockOpen:
-				// Overflow into blockClose
-			case Command::blockClose:
-				out = InterpBlock(act);
+
+			case Command::set:
+				out = InterpSet(act);
+				break;
+
+			case Command::stop:
+				out = InterpStop(act);
 				break;
 		}
 

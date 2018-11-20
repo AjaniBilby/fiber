@@ -21,3 +21,8 @@ init {Name} {Local}
 | Name | Local | Preamble | Code |
 |:-:|:-:|:-:|:-:|
 | Any single word | Register Address | Fiber code | Fiber code |
+
+
+---
+
+Also see the internal representation [here](./../../internals/commands/initilize.)
