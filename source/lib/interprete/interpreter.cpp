@@ -106,312 +106,85 @@ namespace Interpreter{
 
 
 namespace Interpreter{
-	inline Action InterpMode(RawAction act){
+	inline Action InterpBitwise(RawAction act){
 		Action out;
-		out.cmd = Command::mode;
-		out.line = act.line;
-
-		if (act.param.size() != 3){
-			std::cerr << "Error: Invalid number of arguments for mode command" << std::endl;
-			std::cerr << "  args: " << ToString(act.param) << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}
-		out.param.resize(2);
-
-		// Get target register
-		auto reg = GetRegisterID(act.param[1]);
-		if (reg == -1){
-			std::cerr << "Error: Invalid register supplied to mode command" << std::endl;
-			std::cerr << "  arg : " << act.param[1] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}else{
-			out.param[0] = reg;
-		}
-
-		// Get target type
-		if       (act.param[2] == "uint8"){
-			out.param[1] = static_cast<uint64>(RegisterMode::uint8);
-		}else if (act.param[2] == "int8"){
-			out.param[1] = static_cast<uint64>(RegisterMode::int8);
-		}else if (act.param[2] == "uint16"){
-			out.param[1] = static_cast<uint64>(RegisterMode::uint16);
-		}else if (act.param[2] == "int16"){
-			out.param[1] = static_cast<uint64>(RegisterMode::int16);
-		}else if (act.param[2] == "uint32"){
-			out.param[1] = static_cast<uint64>(RegisterMode::uint32);
-		}else if (act.param[2] == "int32"){
-			out.param[1] = static_cast<uint64>(RegisterMode::int32);
-		}else if (act.param[2] == "uint64"){
-			out.param[1] = static_cast<uint64>(RegisterMode::uint64);
-		}else if (act.param[2] == "int64"){
-			out.param[1] = static_cast<uint64>(RegisterMode::int64);
-		}else if (act.param[2] == "float32"){
-			out.param[1] = static_cast<uint64>(RegisterMode::float32);
-		}else if (act.param[2] == "float64"){
-			out.param[1] = static_cast<uint64>(RegisterMode::float64);
-		}else{
-			std::cerr << "Error: Invalid type supplied to mode command" << std::endl;
-			std::cerr << "  arg : " << act.param[2] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}
-
-
-		return out;
-	}
-
-	inline Action InterpSet(RawAction act){
-		Action out;
-		out.cmd = Command::set;
-		out.line = act.line;
-
-		if (act.param.size() != 3){
-			std::cerr << "Error: Invalid number of arguments for set command" << std::endl;
-			std::cerr << "  args: " << ToString(act.param) << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}
-		out.param.resize(5);
-
-
-		// Interpret target
-		auto opper = Interpreter::Opperand(act.param[1]);
-		bool addressMode = opper.type == Interpreter::OpperandType::RegisterAddress;
-		if (opper.type != Interpreter::OpperandType::RegisterAddress && opper.type != Interpreter::OpperandType::RegisterValue){
-
-			std::cerr << "Error: Invalid target type of set command" << std::endl;
-			std::cerr << "   arg: " << act.param[1] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-			out.cmd = Command::invalid;
-			return out;
-		}
-		if (opper.valid == false){
-			std::cerr << "Error: Invalid target register of set command" << std::endl;
-			std::cerr << "   arg: " << act.param[1] <<std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-			out.cmd = Command::invalid;
-			return out;
-		}
-		out.param[0] = static_cast<uint64>(opper.type);
-		out.param[1] = opper.data.uint64;
-
-		// Interpret value
-		if       (act.param[2] == "local"){
-			out.param[2] = 1;
-			out.param[3] = 1;
-
-			if (opper.type != Interpreter::OpperandType::RegisterAddress){
-				std::cerr << "Error: Setting to 'local' requires the target to be a register address" << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-				out.cmd = Command::invalid;
-			return out;
-			}
-		}else if (act.param[2] == "parse"){
-			out.param[2] = 1;
-			out.param[3] = 2;
-
-			if (opper.type != Interpreter::OpperandType::RegisterAddress){
-				std::cerr << "Error: Setting to 'parse' requires the target to be a register address" << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-				out.cmd = Command::invalid;
-				return out;
-			}
-		}else{
-			opper = Interpreter::Opperand(act.param[2]);
-
-			// Changing the value or address of a register?
-			if (addressMode){
-				// Cannot set the address of a register to a constant value
-				if (opper.type != Interpreter::OpperandType::RegisterAddress && opper.type != Interpreter::OpperandType::RegisterValue){
-					std::cerr << "Error: Invalid value type of set command" << std::endl;
-					std::cerr << "   arg: " << act.param[2] <<std::endl;
-					std::cerr << "  line: " << act.line << std::endl;
-					out.cmd = Command::invalid;
-					return out;
-				}
-				if (opper.valid == false){
-					std::cerr << "Error: Invalid value register of set command" << std::endl;
-					std::cerr << "   arg: " << act.param[3] <<std::endl;
-					std::cerr << "  line: " << act.line << std::endl;
-					out.cmd = Command::invalid;
-					return out;
-				}
-			}
-			out.param[2] = 0;
-			out.param[3] = static_cast<uint64>(opper.type);
-			out.param[4] = opper.data.uint64;
-		}
-
-
-		return out;
-	};
-
-	inline Action InterpMath(RawAction act){
-		Action out;
-		out.cmd = Command::math;
+		out.cmd = Command::bitwise;
 		out.line = act.line;
 
 		if (act.param.size() != 4){
-			std::cerr << "Error: Invalid number of arguments for math command" << std::endl;
+			std::cerr << "Error: Invalid number of arguments for bitwise command" << std::endl;
 			std::cerr << "  args: " << ToString(act.param) << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
 			out.cmd = Command::invalid;
 			return out;
 		}
-		out.param.resize(5);
+		out.param.resize(4);
 
 
-		bool addressMode = false;
+		// Interpret A
 		auto opper = Interpreter::Opperand(act.param[1]);
-		if (opper.type == Interpreter::OpperandType::RegisterAddress || opper.type == Interpreter::OpperandType::RegisterValue){
-			addressMode = opper.type == Interpreter::OpperandType::RegisterAddress;
-
-			out.param[0] = static_cast<uint64>(opper.type);
-			out.param[1] = static_cast<uint64>(opper.data.uint64);
-
-			if (opper.valid == false){
-				std::cerr << "Error: Invalid math opperand A." << std::endl;
-				std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
-				std::cerr << "  arg : " << act.param[1] << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-
-				out.cmd = Command::invalid;
-				return out;
-			}
-
-		}else{
-			std::cerr << "Error: Invalid math opperand A type" << std::endl;
+		if (opper.type != Interpreter::OpperandType::RegisterValue){
+			std::cerr << "Error: Invalid bitwise opperand A. Opperand must be Register Value type." << std::endl;
 			std::cerr << "  arg : " << act.param[1] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
-			out.cmd = Command::invalid;
+			out.cmd = Command::Invalid;
 			return out;
 		}
-
-		if       (act.param[2] == "+"){
-			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::addition);
-		}else if (act.param[2] == "-"){
-			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::subtract);
-		}else if (act.param[2] == "*"){
-			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::multiply);
-
-			if (addressMode){
-				std::cerr << "Error: Cannot multiply an address" << std::endl;
-				std::cerr << "  args: " << ToString(act.param) << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-
-				out.cmd = Command::invalid;
-				return out;
-			}
-
-		}else if (act.param[2] == "/"){
-			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::divide);
-
-			if (addressMode){
-				std::cerr << "Error: Cannot divide an address" << std::endl;
-				std::cerr << "  args: " << ToString(act.param) << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-
-				out.cmd = Command::invalid;
-				return out;
-			}
-		}else if (act.param[2] == "%"){
-			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::modulus);
-
-			if (addressMode){
-				std::cerr << "Error: Cannot modulo an address" << std::endl;
-				std::cerr << "  args: " << ToString(act.param) << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-
-				out.cmd = Command::invalid;
-				return out;
-			}
-		}
-
-		opper = Interpreter::Opperand(act.param[3]);
-		out.param[3] = static_cast<uint64>(opper.type);
-		out.param[4] = static_cast<uint64>(opper.data.uint64);
-
 		if (opper.valid == false){
-			std::cerr << "Error: Invalid math opperand A." << std::endl;
-			std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
+			std::cerr << "Error: Invalid opperand A input." << std::endl;
 			std::cerr << "  arg : " << act.param[1] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
-			out.cmd = Command::invalid;
+			out.cmd = Command::Invalid;
+			return out;
+		}
+		out.param[0] = opper.data.uint64;
+
+		// Opperation
+		if       (act.param[2] == "and"){
+			out.param[1] = 0;
+		}else if (act.param[2] == "or"){
+			out.param[1] = 1;
+		}else if (act.param[2] == "xor"){
+			out.param[1] = 2;
+		}else if (act.param[2] == "not"){
+			out.param[1] = 3;
+		}else if (act.param[2] == "shift"){
+			out.param[1] = 4;
+		}
+
+
+		// Invalid Opperand B for NOT
+		if (out.param[1] == 3 && act.param[3] != "_"){
+			std::cerr << "Error: Invalid opperand B for bitwise not execution. Opperand B must be \"_\"." << std::endl;
+			std::cerr << "  arg : " << act.param[3] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::Invalid;
+			return out;
+		}
+		opper = Interpreter::Opperand(act.param[3]);
+		// Invalid Opperand B for Shift
+		if (opper.type != Interpreter::OpperandType::Int && out.param[1] == 4){
+			std::cerr << "Error: Invalid opperand B for bitwise shift execution. Opperand B must be a signed integer." << std::endl;
+			std::cerr << "  arg : " << act.param[3] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::Invalid;
+			return out;
+		}
+		// Bitwise cannot execute on an address
+		if (opper.type == Interpreter::OpperandType::RegisterAddress){
+			std::cerr << "Error: Invalid opperand B for bitwise opperation. Opperands cannot be register addresses." << std::endl;
+			std::cerr << "  arg : " << act.param[3] << std::endl;
+			std::cerr << "  line: " << act.param[3] << std::endl;
+
+			out.cmd = Command::Invalid;
 			return out;
 		}
 
-		return out;
-	}
-
-	inline Action InterpGate(RawAction act){
-		Action out;
-		out.cmd = Command::gate;
-		out.line = act.line;
-
-		if (act.param.size() != 2){
-			std::cerr << "Error: Invalid number of arguments for if statement" << std::endl;
-			std::cerr << "  args: " << ToString(act.param) << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}
-		out.param.resize(2);
-
-
-		auto opper = Interpreter::Opperand(act.param[1]);
-		if (opper.type == Interpreter::OpperandType::RegisterValue){
-
-			if (opper.valid == false){
-				std::cerr << "Error: Invalid if statement opperand." << std::endl;
-				std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
-				std::cerr << "  arg : " << act.param[1] << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
-
-				out.cmd = Command::invalid;
-				return out;
-			}
-
-			out.param[0] = static_cast<uint64>(opper.type);
-			out.param[1] = static_cast<uint64>(opper.data.uint64);
-		}else{
-			std::cerr << "Error: Invalid if statement value" << std::endl;
-			std::cerr << "  arg : " << act.param[1] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		};
-
-		return out;
-	}
-	inline Action InterpGateOther(RawAction act){
-		Action out;
-		out.cmd = Command::gateOther;
-		out.line = act.line;
-
-		if (act.param.size() != 1){
-			std::cerr << "Error: Invalid number of arguments for if statement" << std::endl;
-			std::cerr << "  args: " << ToString(act.param) << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}
-		out.param.resize(1);
 
 		return out;
 	}
@@ -441,7 +214,6 @@ namespace Interpreter{
 		return out;
 	}
 
-	// Both long and short comparing
 	inline Action InterpCompare(RawAction act){
 		Action out;
 		out.cmd = Command::compare;
@@ -557,6 +329,229 @@ namespace Interpreter{
 		return out;
 	}
 
+	// AKA IF
+	inline Action InterpGate(RawAction act){
+		Action out;
+		out.cmd = Command::gate;
+		out.line = act.line;
+
+		if (act.param.size() != 2){
+			std::cerr << "Error: Invalid number of arguments for if statement" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(2);
+
+
+		auto opper = Interpreter::Opperand(act.param[1]);
+		if (opper.type == Interpreter::OpperandType::RegisterValue){
+
+			if (opper.valid == false){
+				std::cerr << "Error: Invalid if statement opperand." << std::endl;
+				std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
+				std::cerr << "  arg : " << act.param[1] << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+
+				out.cmd = Command::invalid;
+				return out;
+			}
+
+			out.param[0] = static_cast<uint64>(opper.type);
+			out.param[1] = static_cast<uint64>(opper.data.uint64);
+		}else{
+			std::cerr << "Error: Invalid if statement value" << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		};
+
+		return out;
+	}
+	inline Action InterpGateOther(RawAction act){
+		Action out;
+		out.cmd = Command::gateOther;
+		out.line = act.line;
+
+		if (act.param.size() != 1){
+			std::cerr << "Error: Invalid number of arguments for if statement" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(1);
+
+		return out;
+	}
+
+	inline Action InterpMath(RawAction act){
+		Action out;
+		out.cmd = Command::math;
+		out.line = act.line;
+
+		if (act.param.size() != 4){
+			std::cerr << "Error: Invalid number of arguments for math command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(5);
+
+
+		bool addressMode = false;
+		auto opper = Interpreter::Opperand(act.param[1]);
+		if (opper.type == Interpreter::OpperandType::RegisterAddress || opper.type == Interpreter::OpperandType::RegisterValue){
+			addressMode = opper.type == Interpreter::OpperandType::RegisterAddress;
+
+			out.param[0] = static_cast<uint64>(opper.type);
+			out.param[1] = static_cast<uint64>(opper.data.uint64);
+
+			if (opper.valid == false){
+				std::cerr << "Error: Invalid math opperand A." << std::endl;
+				std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
+				std::cerr << "  arg : " << act.param[1] << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+
+				out.cmd = Command::invalid;
+				return out;
+			}
+
+		}else{
+			std::cerr << "Error: Invalid math opperand A type" << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+
+		if       (act.param[2] == "+"){
+			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::addition);
+		}else if (act.param[2] == "-"){
+			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::subtract);
+		}else if (act.param[2] == "*"){
+			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::multiply);
+
+			if (addressMode){
+				std::cerr << "Error: Cannot multiply an address" << std::endl;
+				std::cerr << "  args: " << ToString(act.param) << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+
+				out.cmd = Command::invalid;
+				return out;
+			}
+
+		}else if (act.param[2] == "/"){
+			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::divide);
+
+			if (addressMode){
+				std::cerr << "Error: Cannot divide an address" << std::endl;
+				std::cerr << "  args: " << ToString(act.param) << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+
+				out.cmd = Command::invalid;
+				return out;
+			}
+		}else if (act.param[2] == "%"){
+			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::modulus);
+
+			if (addressMode){
+				std::cerr << "Error: Cannot modulo an address" << std::endl;
+				std::cerr << "  args: " << ToString(act.param) << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+
+				out.cmd = Command::invalid;
+				return out;
+			}
+		}
+
+		opper = Interpreter::Opperand(act.param[3]);
+		out.param[3] = static_cast<uint64>(opper.type);
+		out.param[4] = static_cast<uint64>(opper.data.uint64);
+
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid math opperand A." << std::endl;
+			std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+
+		return out;
+	}
+
+	inline Action InterpMode(RawAction act){
+		Action out;
+		out.cmd = Command::mode;
+		out.line = act.line;
+
+		if (act.param.size() != 3){
+			std::cerr << "Error: Invalid number of arguments for mode command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(2);
+
+		// Get target register
+		auto reg = GetRegisterID(act.param[1]);
+		if (reg == -1){
+			std::cerr << "Error: Invalid register supplied to mode command" << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}else{
+			out.param[0] = reg;
+		}
+
+		// Get target type
+		if       (act.param[2] == "uint8"){
+			out.param[1] = static_cast<uint64>(RegisterMode::uint8);
+		}else if (act.param[2] == "int8"){
+			out.param[1] = static_cast<uint64>(RegisterMode::int8);
+		}else if (act.param[2] == "uint16"){
+			out.param[1] = static_cast<uint64>(RegisterMode::uint16);
+		}else if (act.param[2] == "int16"){
+			out.param[1] = static_cast<uint64>(RegisterMode::int16);
+		}else if (act.param[2] == "uint32"){
+			out.param[1] = static_cast<uint64>(RegisterMode::uint32);
+		}else if (act.param[2] == "int32"){
+			out.param[1] = static_cast<uint64>(RegisterMode::int32);
+		}else if (act.param[2] == "uint64"){
+			out.param[1] = static_cast<uint64>(RegisterMode::uint64);
+		}else if (act.param[2] == "int64"){
+			out.param[1] = static_cast<uint64>(RegisterMode::int64);
+		}else if (act.param[2] == "float32"){
+			out.param[1] = static_cast<uint64>(RegisterMode::float32);
+		}else if (act.param[2] == "float64"){
+			out.param[1] = static_cast<uint64>(RegisterMode::float64);
+		}else{
+			std::cerr << "Error: Invalid type supplied to mode command" << std::endl;
+			std::cerr << "  arg : " << act.param[2] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+
+
+		return out;
+	}
+
 	inline Action InterpRtrn(RawAction act){
 		Action out;
 		out.cmd = Command::rtrn;
@@ -575,6 +570,94 @@ namespace Interpreter{
 
 		return out;
 	}
+
+	inline Action InterpSet(RawAction act){
+		Action out;
+		out.cmd = Command::set;
+		out.line = act.line;
+
+		if (act.param.size() != 3){
+			std::cerr << "Error: Invalid number of arguments for set command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(5);
+
+
+		// Interpret target
+		auto opper = Interpreter::Opperand(act.param[1]);
+		bool addressMode = opper.type == Interpreter::OpperandType::RegisterAddress;
+		if (opper.type != Interpreter::OpperandType::RegisterAddress && opper.type != Interpreter::OpperandType::RegisterValue){
+
+			std::cerr << "Error: Invalid target type of set command" << std::endl;
+			std::cerr << "   arg: " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+			out.cmd = Command::invalid;
+			return out;
+		}
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid target register of set command" << std::endl;
+			std::cerr << "   arg: " << act.param[1] <<std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[0] = static_cast<uint64>(opper.type);
+		out.param[1] = opper.data.uint64;
+
+		// Interpret value
+		if       (act.param[2] == "local"){
+			out.param[2] = 1;
+			out.param[3] = 1;
+
+			if (opper.type != Interpreter::OpperandType::RegisterAddress){
+				std::cerr << "Error: Setting to 'local' requires the target to be a register address" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+				out.cmd = Command::invalid;
+			return out;
+			}
+		}else if (act.param[2] == "parse"){
+			out.param[2] = 1;
+			out.param[3] = 2;
+
+			if (opper.type != Interpreter::OpperandType::RegisterAddress){
+				std::cerr << "Error: Setting to 'parse' requires the target to be a register address" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+				out.cmd = Command::invalid;
+				return out;
+			}
+		}else{
+			opper = Interpreter::Opperand(act.param[2]);
+
+			// Changing the value or address of a register?
+			if (addressMode){
+				// Cannot set the address of a register to a constant value
+				if (opper.type != Interpreter::OpperandType::RegisterAddress && opper.type != Interpreter::OpperandType::RegisterValue){
+					std::cerr << "Error: Invalid value type of set command" << std::endl;
+					std::cerr << "   arg: " << act.param[2] <<std::endl;
+					std::cerr << "  line: " << act.line << std::endl;
+					out.cmd = Command::invalid;
+					return out;
+				}
+				if (opper.valid == false){
+					std::cerr << "Error: Invalid value register of set command" << std::endl;
+					std::cerr << "   arg: " << act.param[3] <<std::endl;
+					std::cerr << "  line: " << act.line << std::endl;
+					out.cmd = Command::invalid;
+					return out;
+				}
+			}
+			out.param[2] = 0;
+			out.param[3] = static_cast<uint64>(opper.type);
+			out.param[4] = opper.data.uint64;
+		}
+
+
+		return out;
+	};
 
 
 	// Forwards interpretation to dedicated functions
