@@ -1,4 +1,4 @@
-# Bytecode
+# Internal: Class: Bytecode
 
 The bytecode it's self is a flatted vector of vectors.
 If you imagin a single command as being a vector, where the first element defines the command it's self, and the rest define the parameters for that command. The way the bytecode is stored is similar to that, but since commands will never change their size during execution it is flatened.

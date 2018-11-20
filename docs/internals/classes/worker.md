@@ -1,4 +1,4 @@
-# Worker
+# Internal: Class: Worker
 
 A worker runs on an event loop, allowing it to process multiple different function instances which all have individual async behaviour.  
 However for a worker to originally receive any work they must aquire it from the shared work pool (a.k.a. unclaimed work). The unclaimed work pool has the same behaviour as a worker's pool, however it will be accessed by multiple threads.  

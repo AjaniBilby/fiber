@@ -20,4 +20,4 @@ init {Name} {Register}
 ## Valid combinations
 | Name | Register | Preamble | Code |
 |:-:|:-:|:-:|:-:|
-| Any single word | Register Address | Fiber code
+| Any single word | Register Address | Fiber code | Fiber code |

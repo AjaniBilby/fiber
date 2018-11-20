@@ -1,4 +1,4 @@
-# Function
+# Internal: Class: Function
 
 Each function only stores byte code relevant to it's own execution path.  
 Any sub-functions are not stored within the function it's self, but instead within child functions.  
