@@ -129,7 +129,7 @@ namespace Interpreter{
 			std::cerr << "  arg : " << act.param[1] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
-			out.cmd = Command::Invalid;
+			out.cmd = Command::invalid;
 			return out;
 		}
 		if (opper.valid == false){
@@ -137,7 +137,7 @@ namespace Interpreter{
 			std::cerr << "  arg : " << act.param[1] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
-			out.cmd = Command::Invalid;
+			out.cmd = Command::invalid;
 			return out;
 		}
 		out.param[0] = opper.data.uint64;
@@ -162,7 +162,7 @@ namespace Interpreter{
 			std::cerr << "  arg : " << act.param[3] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
-			out.cmd = Command::Invalid;
+			out.cmd = Command::invalid;
 			return out;
 		}
 		opper = Interpreter::Opperand(act.param[3]);
@@ -172,7 +172,7 @@ namespace Interpreter{
 			std::cerr << "  arg : " << act.param[3] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
-			out.cmd = Command::Invalid;
+			out.cmd = Command::invalid;
 			return out;
 		}
 		// Bitwise cannot execute on an address
@@ -181,7 +181,7 @@ namespace Interpreter{
 			std::cerr << "  arg : " << act.param[3] << std::endl;
 			std::cerr << "  line: " << act.param[3] << std::endl;
 
-			out.cmd = Command::Invalid;
+			out.cmd = Command::invalid;
 			return out;
 		}
 
