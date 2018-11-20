@@ -1,7 +1,7 @@
 # Command: Initilize
 Creates a new function instance, and binds a return action.
 ```
-init {Name} {Register}
+init {Name} {Local}
 {
   {Preamble}
 }
@@ -15,9 +15,9 @@ init {Name} {Register}
 
 ``Code`` will execute linearly once the function instance returns a value.  
 
-``Register`` will point to the starting address of the local space of the new instance.
+``Local`` will point to the address of the local space of the new instance.
 
 ## Valid combinations
-| Name | Register | Preamble | Code |
+| Name | Local | Preamble | Code |
 |:-:|:-:|:-:|:-:|
 | Any single word | Register Address | Fiber code | Fiber code |
