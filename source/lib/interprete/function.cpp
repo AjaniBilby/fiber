@@ -157,7 +157,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
 				std::cerr << "  line: " << cmd[i].line << std::endl;
 			}
-			cmd[k].cmd == Command::stop;
+			cmd[k].cmd = Command::stop;
 
 
 			// Convert the necessary brackets
