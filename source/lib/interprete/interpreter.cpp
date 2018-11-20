@@ -390,6 +390,61 @@ namespace Interpreter{
 		return out;
 	}
 
+	inline Action InterpInitilize(RawAction act, Function* context){
+		Action out;
+		out.cmd = Command::initilize;
+		out.line = act.line;
+
+		if (act.param.size() != 3){
+			std::cerr << "Error: Invalid number of arguments for initilize command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(3);
+
+
+		// Search for the function to ensure it exists
+		auto position = context->find(act.param[1]);
+		if (position.ptr == nullptr){
+			std::cerr << "Error: Invalid function initilization; no function with perscribed name" << std::endl;
+			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[0] = reinterpret_cast<uint64>(position.ptr);
+		out.param[1] = position.relDepth;
+
+
+		// Read the new local space register address
+		auto opper = Interpreter::Opperand(act.param[2]);
+		if (opper.type != Interpreter::OpperandType::RegisterAddress){
+			std::cerr << "Error: Invalid function initilization; no register to define new local space to. Parameter 2 must be a Register Address." << std::endl;
+			std::cerr << "  arg : " << act.param[2] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid function initilization; invalid parameter 2." << std::endl;
+			std::cerr << "  arg : " << act.param[2] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[2] = opper.data.uint64;
+
+
+		out.cmd = Command::invalid;
+		return out;
+	}
+
 	inline Action InterpMath(RawAction act){
 		Action out;
 		out.cmd = Command::math;

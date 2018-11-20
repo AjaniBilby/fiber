@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+struct FunctionReference{
+	void* ptr;
+	size_t relDepth;
+};
+
 class Function{
 	public:
 		Function* parent;
@@ -17,6 +22,9 @@ class Function{
 		size_t domain;
 
 		Function(std::string name, std::vector<RawAction> tokens, size_t domainSize, Function* owner=nullptr);
+
+		// Find a function with the supplied name
+		FunctionReference find(std::string str);
 };
 
 

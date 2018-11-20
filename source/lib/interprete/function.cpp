@@ -115,3 +115,31 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 		}
 	}
 };
+
+
+FunctionReference Function::find(std::string str){
+	FunctionReference out;
+	out.relDepth = 0;
+
+	// Search children
+	size_t children = this->child.size();
+	for (size_t i=0; i<children; i++){
+		if (this->child[i].name == str){
+			out.ptr = &this->child[i];
+			return out;
+		}
+	}
+
+	// No children have that name
+	// Search up the definition stack
+	if (this->parent != nullptr){
+		out = this->parent->find(str);
+		out.relDepth++;
+
+		return out;
+	}
+
+	// Unable to search up the definition stack as this is the apparent top
+	out.ptr = nullptr;
+	return out;
+}
