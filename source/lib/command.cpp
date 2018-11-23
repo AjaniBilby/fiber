@@ -52,7 +52,7 @@ Command CommandFrom(std::string str){
 		return Command::stop;
 	} else if (str == "blank"){
 		// For internal use only
-		return Commmand::invalid;
+		return Command::invalid;
 	} else if (str == "jump"){
 		// For internal use only
 		return Command::invalid;
