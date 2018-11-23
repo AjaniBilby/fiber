@@ -97,7 +97,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 
 
-	// Let initilize consume required blocks
+	// Let initilize consume required cmds
 	size = cmd.size();
 	// Find initilize command
 	for (size_t i=0; i<size; i++){
@@ -107,6 +107,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			if (i+1 >= size || cmd[i+1].cmd != Command::blockOpen){
 				std::cerr << "Error: Invalid initilization; missing preamble." << std::endl;
 				std::cerr << "  line: " << cmd[i].line << std::endl;
+
+				this->valid = false;
+				return;
 			}
 
 
@@ -128,6 +131,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			if (j>=size || cmd[j].cmd != Command::blockClose){
 				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
 				std::cerr << "  line: " << cmd[i].line << std::endl;
+
+				this->valid = false;
+				return;
 			}
 
 
@@ -135,6 +141,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			if (j+1 >= size || cmd[j+1].cmd != Command::blockOpen){
 				std::cerr << "Error : Invalid initilization; missing finishing code." << std::endl;
 				std::cerr << " line: " << cmd[i].line << std::endl;
+
+				this->valid = false;
+				return;
 			}
 
 
@@ -156,6 +165,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			if (k>=size || cmd[k].cmd != Command::blockClose){
 				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
 				std::cerr << "  line: " << cmd[i].line << std::endl;
+
+				this->valid = false;
+				return;
 			}
 			cmd[k].cmd = Command::stop;
 
@@ -163,14 +175,107 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			// Convert the necessary brackets
 			cmd[i+1].cmd = Command::jump;
 			cmd[i+1].param.resize(1);
-			cmd[i+1].param[0] = (j+1) - (i+1);
+			cmd[i+1].param[0] = (j+2) - (i+1);
 			cmd[j].cmd = Command::jump;
 			cmd[j].param.resize(1);
-			cmd[j].param[0] = (k+1) - (j);
+			cmd[j].param[0] = (k+2) - (j);
 			cmd[j+1].cmd = Command::stop;
 			cmd[j+1].param.resize(0);
 			cmd[k].cmd = Command::stop;
 			cmd[k].param.resize(0);
+		}
+	}
+
+	// Let if consume required cmds
+	for (size_t i=0; i<size; i++){
+		if (cmd[i].cmd == Command::gate){
+
+			// Check an opening bracket exists
+			if (i+1 >= size || cmd[i+1].cmd != Command::blockOpen){
+				std::cerr << "Error: If statement is missing opening bracket on new line" << std::endl;
+				std::cerr << "  line: " << cmd[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			// Find the closing bracket
+			size_t j=i+1;
+			size_t depth=0;
+			for (; j<size; j++){
+				if (cmd[j].cmd == Command::blockOpen){
+					depth++;
+				}
+				if (cmd[j].cmd == Command::blockClose){
+					depth--;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+			if (j+1 >= size || cmd[j].cmd != Command::blockClose){
+				std::cerr << "Error: Missing if statement closing bracket" << std::endl;
+				std::cerr << "  line: " << cmd[i].line;
+
+				this->valid = false;
+				return;
+			}
+
+			if (cmd[j+1].cmd != Command::gateOther || j+1 >= size){ // No else clause
+				cmd[i+1].cmd = Command::jump;
+				cmd[i+1].param.resize(1);
+				cmd[i+1].param[0] = (j+1) - (i+1);
+				cmd[j].cmd = Command::blank;
+				cmd[j].param.resize(0);
+			}else{ // Has else clause
+
+				// Check the else clause has an open bracket
+				if (cmd[j+2].cmd != Command::blockOpen || j+2 >= size){
+					std::cerr << "Error: Invalid else clause, missing opening bracket." << std::endl;
+					std::cerr << "  line: " << cmd[j+1].line << std::endl;
+
+					this->valid = false;
+					return;
+				}
+
+				// Find else closing bracket
+				size_t k=j+2;
+				depth = 0;
+				for (; k<size; k++){
+					if (cmd[k].cmd == Command::blockOpen){
+						depth++;
+					}
+					if (cmd[k].cmd == Command::blockClose){
+						depth--;
+					}
+
+					if (depth == 0){
+						break;
+					}
+				}
+				if (k>=size || cmd[k].cmd != Command::blockClose){
+					std::cerr << "Error: Unable to find the closing bracket for else clause." << std::endl;
+					std::cerr << "  line: " << cmd[j+2].line << std::endl;
+
+					this->valid = false;
+					return;
+				}
+
+				// Convert necessary commands
+				cmd[i+1].cmd = Command::jump;
+				cmd[i+1].param.resize(1);
+				cmd[i+1].param[0] = (j+3) - (i+1);
+				cmd[j].cmd = Command::jump;
+				cmd[j].param.resize(1);
+				cmd[j].param[0] = (k+1) - (j);
+				cmd[j+1].cmd = Command::blank;
+				cmd[j+1].param.resize(0);
+				cmd[j+2].cmd = Command::blank;
+				cmd[j+2].param.resize(0);
+				cmd[k].cmd = Command::blank;
+				cmd[k].param.resize(0);
+			}
 		}
 	}
 

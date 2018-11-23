@@ -10,7 +10,8 @@ enum class ComparisonOpperators: unsigned short{
 
 enum class Command: unsigned short{
 	invalid,
-	jump,            // jump (internal use only)
+	blank,           // (internal use only)
+	jump,            // (internal use only)
 	stop,            // stop
 	set,             // set
 	mode,            // mode

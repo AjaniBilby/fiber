@@ -50,6 +50,9 @@ std::string ToString(Command cmd){
 Command CommandFrom(std::string str){
 	if        (str == "stop"){
 		return Command::stop;
+	} else if (str == "blank"){
+		// For internal use only
+		return Commmand::invalid;
 	} else if (str == "jump"){
 		// For internal use only
 		return Command::invalid;
