@@ -42,6 +42,9 @@ std::string ToString(Command cmd){
 		case Command::jump:
 			// For internal use only
 			return "Err(CMD:jump)";
+		case Command::blank:
+			// For internal use only
+			return "Err(CMD:blank)";
 	}
 
 	return "Err";
