@@ -228,6 +228,7 @@ namespace Interpreter{
 			out.cmd = Command::invalid;
 			return out;
 		}
+		out.param.resize(5);
 
 		bool addressMode = false;
 
@@ -261,11 +262,11 @@ namespace Interpreter{
 
 		// Opperator
 		if (act.param[2] == "<"){
-			out.param[0] = static_cast<uint64>(ComparisonOpperators::lesser);
+			out.param[2] = static_cast<uint64>(ComparisonOpperators::lesser);
 		}else if (act.param[2] == ">"){
-			out.param[0] = static_cast<uint64>(ComparisonOpperators::greater);
+			out.param[2] = static_cast<uint64>(ComparisonOpperators::greater);
 		}else if (act.param[2] == "="){
-			out.param[0] = static_cast<uint64>(ComparisonOpperators::equal);
+			out.param[2] = static_cast<uint64>(ComparisonOpperators::equal);
 		}else{
 			std::cerr << "Error: Invalid opperator for comparison" << std::endl;
 			std::cerr << "  arg : " << act.param[2] << std::endl;
@@ -739,6 +740,10 @@ namespace Interpreter{
 		Action out;
 		out.cmd = Command::invalid;
 
+		#if DEBUG
+		std::cout << "  interping: " << act.param[0] << std::endl;
+		#endif
+
 		switch ( CommandFrom(act.param[0]) ){
 			case Command::invalid:
 				std::cerr << "Error: Unknown commmand" << std::endl;
@@ -791,6 +796,28 @@ namespace Interpreter{
 
 			case Command::stop:
 				out = InterpStop(act);
+				break;
+
+
+			case Command::blockExit:
+			case Command::blockRepeat:
+			case Command::standardStream:
+			case Command::memalloc:
+				std::cerr << "Error: Unimplemented command" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+				break;
+
+			case Command::function:
+				std::cerr << "Error: function command should already be consumed before interpreting" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+				break;
+			case Command::blank:
+				std::cerr << "Error: Jump command is for internal use only" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+				break;
+			case Command::jump:
+				std::cerr << "Error: Jump command is for internal use only" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
 				break;
 		}
 
