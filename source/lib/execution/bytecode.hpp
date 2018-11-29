@@ -37,6 +37,7 @@ class Bytecode{
 		BytecodeElement* at(std::size_t index);        // Get a reference to the element at the 'true' index
 
 		std::size_t next(std::size_t idx);             // Get the index of the next command
+		BytecodeElement* next(BytecodeElement* current);
 
 		// Add a new command with parameters to he end of the code
 		void append(Action act);
@@ -45,6 +46,7 @@ class Bytecode{
 		void simplifyJumps();
 	private:
 		std::vector<BytecodeElement> data;
+		void* last;
 };
 
 

@@ -29,20 +29,34 @@ BytecodeElement* Bytecode::at(std::size_t index){
 std::size_t Bytecode::next(std::size_t index){
 	return index + this->data[index].cmd.params +1;
 };
+BytecodeElement* Bytecode::next(BytecodeElement* current){
+	current += (current->cmd.params + 1) * sizeof(BytecodeElement);
+
+	// Reached the end of the data
+	if (current > this->last){
+		return nullptr;
+	}
+
+	return current;
+};
 
 void Bytecode::append(Action act){
-	unsigned long    i = this->data.size();
-	unsigned long size = act.param.size();
+	size_t    i = this->data.size();
+	size_t size = act.param.size();
 
 	// Create space for the element header + params
+	size_t nSize = this->data.size()+size+1;
 	this->data.resize( this->data.size()+size+1 );
 
 	// Set the element header
-	this->data[i].cmd = { reinterpret_cast<Command>(act.cmd), size };
+	this->data[i].cmd = { reinterpret_cast<Command>(act.cmd), size, act.line };
 	// Set the individual parameters
-	for (unsigned long j = 0; j<size; j++){
+	for (size_t j = 0; j<size; j++){
 		this->data[j+1].value = act.param[j];
 	}
+
+	// Update the address of the final element
+	this->last = &this->data[nSize-1];
 };
 
 
