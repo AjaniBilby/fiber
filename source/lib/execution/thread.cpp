@@ -31,9 +31,12 @@ bool Thread::Worker::Wake(){
 		this->active = true;
 		std::unique_lock<std::mutex> lck(this->mtx);
 		this->ping.notify_all();
+
+		// A change occured
 		return true;
 	}
 
+	// The worker was already awake
 	return false;
 };
 void Thread::Worker::Close(){
@@ -93,6 +96,12 @@ EventLoop::SearchResult Thread::Worker::FindTask(){
 void Thread::Worker::Process(){
 	this->active = true;
 	std::unique_lock<std::mutex> lck(this->mtx);
+	std::string str;
+
+	#if DEBUG
+	str = "Worker " + std::to_string(this->workerID) + " generated\n";
+	std::cout << str;
+	#endif
 
 	EventLoop::SearchResult result;
 	while (true){
@@ -100,11 +109,23 @@ void Thread::Worker::Process(){
 
 		if (result.found == true){
 			// Execute the task
+			#if DEBUG
+			str = "Worker " + std::to_string(this->workerID) + " processing..\n";
+			std::cout << str;
+			#endif
 			reinterpret_cast<Instance*>(result.data.reference)->Process(result.data.position);
 		}else{
 			// Suspend the thread until notified of new tasks
 			this->active = false;
+			#if DEBUG
+			str = "Worker " + std::to_string(this->workerID) + " sleeping..\n";
+			std::cout << str;
+			#endif
 			this->ping.wait(lck);
+			#if DEBUG
+			str = "Worker " + std::to_string(this->workerID) + " woken..\n";
+			std::cout << str;
+			#endif
 			this->active = true;
 
 			if (this->shouldClose){
@@ -114,6 +135,11 @@ void Thread::Worker::Process(){
 			}
 		}
 	}
+
+	#if DEBUG
+	str = "Worker " + std::to_string(this->workerID) + " destorying\n";
+	#endif
+	std::cout << str;
 
 	return;
 };

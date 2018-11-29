@@ -14,8 +14,6 @@ namespace Thread{
 		public:
 			// This worker's unqiue ID (relative to threadpool)
 			size_t workerID;
-
-			bool shouldClose;
 			bool active;
 
 			//     This work's unique ID (unqiue to pool)
@@ -36,6 +34,8 @@ namespace Thread{
 
 			bool HasTasks();
 		private:
+			bool shouldClose;
+
 			// Own unique work queue
 			EventLoop::Schedule queue;
 			// Generic unassigned work pool
