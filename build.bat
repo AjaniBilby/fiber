@@ -31,6 +31,12 @@ if /I "%MemSafe%"=="y" (
 )
 
 rem Default natic
+
+if /I "%OS%" == "" (
+	set OS=Native
+	goto FinishOSSelection
+)
+
 if /I "%OS%"=="windows" (
 	set Command=%Command% -target x86_64-pc-windows-msvc
 	goto FinishOSSelection
