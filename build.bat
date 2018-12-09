@@ -12,7 +12,7 @@ set OS=%1
 shift
 
 rem Construct the command as the build command is configured
-set Command=clang++ "./source/main.cpp" -o "./fiber.exe" -std=c++14 -Xclang -flto-visibility-public-std
+set Command=clang++ -g -gcodeview "./source/main.cpp" -o "./fiber.exe" -std=c++14 -Xclang -flto-visibility-public-std
 
 
 
