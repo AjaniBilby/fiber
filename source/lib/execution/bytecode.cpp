@@ -43,9 +43,6 @@ Bytecode::~Bytecode(){
 
 		curr = nxt;
 	}
-
-	// Unallocate yourself
-	free(this);
 };
 
 void Bytecode::append(Action act){
