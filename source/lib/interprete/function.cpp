@@ -7,13 +7,14 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	this->name = name;
 
 	// Raise function definitions
+	std::vector<RawAction> forward;
 	std::vector<RawAction> next;
 	size_t size = tokens.size();
 	for (size_t i=0; i<size; i++){
 		// Forward any child functions through to a new child
 		if (tokens[i].param[0] == "func"){
-			std::vector<RawAction> forward;
 			unsigned long depth = 0;
+			forward.resize(0);
 
 			if (tokens[i].param.size() != 3){
 				std::cerr << "Error: Invalid number of arguments during function definition" << std::endl;
@@ -61,7 +62,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			}
 
 			// If an end bracket was not able to be found
-			if (tokens[j].param[0] != "}"){
+			if (j >= size || tokens[j].param[0] != "}"){
 				std::cerr << "Error: Invalid function definition, missing closing bracket" << std::endl;
 				std::cerr << "  line: " << tokens[i].line << std::endl;
 				this->valid = false;
@@ -76,37 +77,41 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 		next.push_back(tokens[i]);
 	}
+	#if DEBUG
+	std::cout << "Segregated children" << std::endl;
+	#endif
 
 
 
 	// Interpret raw tokens
-	std::vector<Action> cmd;
+	std::vector<Action> actions;
+	actions.resize(size);
 	tokens = next;
 	size = tokens.size();
 	for (size_t i=0; i<size; i++){
-		Action temp;
-		temp = Interpreter::Convert(tokens[i], this);
+		actions[i] = Interpreter::Convert(tokens[i], this);
 
-		if (temp.cmd == Command::invalid){
+		if (actions[i].cmd == Command::invalid){
 			this->valid = false;
 			return;
 		}
-
-		cmd.push_back(temp);
 	}
+	tokens.resize(0);
+	next.resize(0);
+	#if DEBUG
+	std::cout << "Interpreted tokens" << std::endl;
+	#endif
 
 
-
-	// Let initilize consume required cmds
-	size = cmd.size();
-	// Find initilize command
+	// Simplify initilize behaviour
+	//  See: docs/internals/commands/initilize
 	for (size_t i=0; i<size; i++){
-		if (cmd[i].cmd == Command::initilize){
+		if (actions[i].cmd == Command::initilize){
 
 			// Check it has a code block after it
-			if (i+1 >= size || cmd[i+1].cmd != Command::blockOpen){
+			if (i+1 >= size || actions[i+1].cmd != Command::blockOpen){
 				std::cerr << "Error: Invalid initilization; missing preamble." << std::endl;
-				std::cerr << "  line: " << cmd[i].line << std::endl;
+				std::cerr << "  line: " << actions[i].line << std::endl;
 
 				this->valid = false;
 				return;
@@ -117,10 +122,10 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			size_t j=i+1;
 			size_t depth = 0;
 			for (; j<size; j++){
-				if (cmd[j].cmd == Command::blockOpen){
+				if (actions[j].cmd == Command::blockOpen){
 					depth++;
 				}
-				if (cmd[j].cmd == Command::blockClose){
+				if (actions[j].cmd == Command::blockClose){
 					depth--;
 				}
 
@@ -128,9 +133,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 					break;
 				}
 			}
-			if (j>=size || cmd[j].cmd != Command::blockClose){
+			if (j>=size || actions[j].cmd != Command::blockClose){
 				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
-				std::cerr << "  line: " << cmd[i].line << std::endl;
+				std::cerr << "  line: " << actions[i].line << std::endl;
 
 				this->valid = false;
 				return;
@@ -138,9 +143,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 
 			// Check for the second code block
-			if (j+1 >= size || cmd[j+1].cmd != Command::blockOpen){
+			if (j+1 >= size || actions[j+1].cmd != Command::blockOpen){
 				std::cerr << "Error : Invalid initilization; missing finishing code." << std::endl;
-				std::cerr << " line: " << cmd[i].line << std::endl;
+				std::cerr << " line: " << actions[i].line << std::endl;
 
 				this->valid = false;
 				return;
@@ -151,10 +156,10 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			size_t k=j+1;
 			depth = 0;
 			for (; k<size; k++){
-				if (cmd[k].cmd == Command::blockOpen){
+				if (actions[k].cmd == Command::blockOpen){
 					depth++;
 				}
-				if (cmd[k].cmd == Command::blockClose){
+				if (actions[k].cmd == Command::blockClose){
 					depth--;
 				}
 
@@ -162,51 +167,57 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 					break;
 				}
 			}
-			if (k>=size || cmd[k].cmd != Command::blockClose){
+			if (k>=size || actions[k].cmd != Command::blockClose){
 				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
-				std::cerr << "  line: " << cmd[i].line << std::endl;
+				std::cerr << "  line: " << actions[i].line << std::endl;
 
 				this->valid = false;
 				return;
 			}
-			cmd[k].cmd = Command::stop;
+			actions[k].cmd = Command::stop;
 
 
 			// Convert the necessary brackets
-			cmd[i+1].cmd = Command::jump;
-			cmd[i+1].param.resize(1);
-			cmd[i+1].param[0] = (j+2) - (i+1);
-			cmd[j].cmd = Command::jump;
-			cmd[j].param.resize(1);
-			cmd[j].param[0] = (k+2) - (j);
-			cmd[j+1].cmd = Command::stop;
-			cmd[j+1].param.resize(0);
-			cmd[k].cmd = Command::stop;
-			cmd[k].param.resize(0);
+			actions[i+1].cmd = Command::jump;
+			actions[i+1].param.resize(1);
+			actions[i+1].param[0] = (j+2);
+			actions[j].cmd = Command::jump;
+			actions[j].param.resize(1);
+			actions[j].param[0] = (k+2);
+			actions[j+1].cmd = Command::stop;
+			actions[j+1].param.resize(0);
+			actions[k].cmd = Command::stop;
+			actions[k].param.resize(0);
 		}
 	}
+	#if DEBUG
+	std::cout << "Compiled initilize behvaiour" << std::endl;
+	#endif
 
-	// Let if consume required cmds
+
+
+	// Simplify if behaviour
+	//  See: docs/internals/commands/if
 	for (size_t i=0; i<size; i++){
-		if (cmd[i].cmd == Command::gate){
+		if (actions[i].cmd == Command::gate){
 
 			// Check an opening bracket exists
-			if (i+1 >= size || cmd[i+1].cmd != Command::blockOpen){
+			if (i+1 >= size || actions[i+1].cmd != Command::blockOpen){
 				std::cerr << "Error: If statement is missing opening bracket on new line" << std::endl;
-				std::cerr << "  line: " << cmd[i].line << std::endl;
+				std::cerr << "  line: " << actions[i].line << std::endl;
 
 				this->valid = false;
 				return;
 			}
 
 			// Find the closing bracket
-			size_t j=i+1;
+			size_t j=i+1;   // starts on the opening bracket after the IF
 			size_t depth=0;
 			for (; j<size; j++){
-				if (cmd[j].cmd == Command::blockOpen){
+				if (actions[j].cmd == Command::blockOpen){
 					depth++;
 				}
-				if (cmd[j].cmd == Command::blockClose){
+				if (actions[j].cmd == Command::blockClose){
 					depth--;
 				}
 
@@ -214,39 +225,38 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 					break;
 				}
 			}
-			if (j+1 >= size || cmd[j].cmd != Command::blockClose){
+			if (j >= size || actions[j].cmd != Command::blockClose){
 				std::cerr << "Error: Missing if statement closing bracket" << std::endl;
-				std::cerr << "  line: " << cmd[i].line;
+				std::cerr << "  line: " << actions[i].line;
 
 				this->valid = false;
 				return;
 			}
 
-			if (cmd[j+1].cmd != Command::gateOther || j+1 >= size){ // No else clause
-				cmd[i+1].cmd = Command::jump;
-				cmd[i+1].param.resize(1);
-				cmd[i+1].param[0] = (j+1) - (i+1);
-				cmd[j].cmd = Command::blank;
-				cmd[j].param.resize(0);
+			if (actions[j+1].cmd != Command::gateOther || j+1 >= size){ // No else clause
+				actions[i+1].cmd = Command::jump;
+				actions[i+1].param.resize(1);
+				actions[i+1].param[0] = (j+1) - (i+1);
+				actions[j].cmd = Command::blank;
+				actions[j].param.resize(0);
 			}else{ // Has else clause
-
 				// Check the else clause has an open bracket
-				if (cmd[j+2].cmd != Command::blockOpen || j+2 >= size){
+				if (actions[j+2].cmd != Command::blockOpen || j+2 >= size){
 					std::cerr << "Error: Invalid else clause, missing opening bracket." << std::endl;
-					std::cerr << "  line: " << cmd[j+1].line << std::endl;
+					std::cerr << "  line: " << actions[j+1].line << std::endl;
 
 					this->valid = false;
 					return;
 				}
 
 				// Find else closing bracket
-				size_t k=j+2;
+				size_t k=j+2; // start at the opening bracket after the else
 				depth = 0;
 				for (; k<size; k++){
-					if (cmd[k].cmd == Command::blockOpen){
+					if (actions[k].cmd == Command::blockOpen){
 						depth++;
 					}
-					if (cmd[k].cmd == Command::blockClose){
+					if (actions[k].cmd == Command::blockClose){
 						depth--;
 					}
 
@@ -254,50 +264,58 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 						break;
 					}
 				}
-				if (k>=size || cmd[k].cmd != Command::blockClose){
+				if (k>=size || actions[k].cmd != Command::blockClose){
 					std::cerr << "Error: Unable to find the closing bracket for else clause." << std::endl;
-					std::cerr << "  line: " << cmd[j+2].line << std::endl;
+					std::cerr << "  line: " << actions[j+2].line << std::endl;
 
 					this->valid = false;
 					return;
 				}
 
 				// Convert necessary commands
-				cmd[i+1].cmd = Command::jump;
-				cmd[i+1].param.resize(1);
-				cmd[i+1].param[0] = (j+3) - (i+1);
-				cmd[j].cmd = Command::jump;
-				cmd[j].param.resize(1);
-				cmd[j].param[0] = (k+1) - (j);
-				cmd[j+1].cmd = Command::blank;
-				cmd[j+1].param.resize(0);
-				cmd[j+2].cmd = Command::blank;
-				cmd[j+2].param.resize(0);
-				cmd[k].cmd = Command::blank;
-				cmd[k].param.resize(0);
+				actions[i+1].cmd = Command::jump;
+				actions[i+1].param.resize(1);
+				actions[i+1].param[0] = (j+3);
+				actions[j].cmd = Command::jump;
+				actions[j].param.resize(1);
+				actions[j].param[0] = (k+1);
+				actions[j+1].cmd = Command::blank;
+				actions[j+1].param.resize(0);
+				actions[j+2].cmd = Command::blank;
+				actions[j+2].param.resize(0);
+				actions[k].cmd = Command::blank;
+				actions[k].param.resize(0);
 			}
 		}
 	}
 
+	#if DEBUG
+	std::cout << "Compiled if behvaiour" << std::endl;
+	#endif
 
-	// Compact the code
-	size = cmd.size();
+	size = actions.size();
 	for (size_t i=0; i<size; i++){
-		this->code.append(cmd[i]);
+		this->code.append(actions[i]);
+		std::cout << ToString(actions[i]) << " -> " << ToString(this->code.getLast()) << std::endl;
 	}
-	this->code.simplifyJumps();
+	#if DEBUG
+	std::cout << "Compacted code" << std::endl;
+	#endif
 
-
-
-	// Check if any child is invalid
-	// If so make this function invalid
-	size = this->child.size();
-	for (unsigned long i=0; i<size; i++){
-		if (this->child[i].valid == false){
-			this->valid = false;
-			return;
-		}
+	auto ptr = this->code.next();
+	std::cout << "Check compaction" << std::endl;
+	while (ptr != nullptr){
+		std::cout << "  " << ToString(ptr) << std::endl;
+		ptr = this->code.next(ptr);
 	}
+
+
+	// this->code.simplify();
+	#if DEBUG
+	std::cout << "Simplified Jumps" << std::endl;
+	#endif
+
+	return;
 };
 
 

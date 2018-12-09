@@ -44,6 +44,9 @@ namespace Interpreter{
 
 			std::string typeToString();
 	};
+
+
+	Action Convert(RawAction act, Function* context);
 };
 
 

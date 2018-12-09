@@ -17,7 +17,7 @@ typedef char                int8;
 typedef void* address;
 
 
-bool checkTypeSizing(){
+bool CheckTypeSizing(){
 	bool valid = true;
 
 	// Check ints

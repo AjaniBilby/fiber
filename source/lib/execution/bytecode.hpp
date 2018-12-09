@@ -5,23 +5,7 @@
 
 #include <string>
 #include <vector>
-
-
-struct BytecodeCommand{
-	Command cmd;           // 2bytes
-	unsigned short params; // 2bytes
-	unsigned int   lineNo; // 4bytes
-};
-
-union BytecodeElement{
-	unsigned long          value; // 8bytes
-	BytecodeCommand cmd;          // 8Bytes
-};
-
-struct BytecodeReference{
-	unsigned long index;
-	unsigned long _trueIndex;
-};
+#include <memory>
 
 
 struct Action{
@@ -30,27 +14,56 @@ struct Action{
 	std::vector<uint64> param;
 };
 
-
-class Bytecode{
+// NOTE: Must be 8 bytes
+class Order{
 	public:
-		std::size_t      find(std::size_t commandNum); // Find the true index of the command
-		BytecodeElement* at(std::size_t index);        // Get a reference to the element at the 'true' index
+		Command cmd;
+		uint32 line;
+		uint8 params;
 
-		std::size_t next(std::size_t idx);             // Get the index of the next command
-		BytecodeElement* next(BytecodeElement* current);
+		Order* next;
 
-		// Add a new command with parameters to he end of the code
-		void append(Action act);
+		Order(){
+			std::cerr << "Error: An order was not initilized out-side of it's self" << std::endl;
+		};
+		~Order();
 
-		// Change jumps from being relative to commands to being exact 'true' indexes
-		void simplifyJumps();
-	private:
-		std::vector<BytecodeElement> data;
-		void* last;
+		uint64  get(size_t i=0);
+		uint64* ref(size_t i=0);
 };
 
 
-std::string ToString(BytecodeElement* code);
+class Bytecode{
+	public:
+		~Bytecode();
+
+		// Add a new command to the chain
+		void append(Action act);
+
+		// Get the next sequential order
+		Order* next(Order* current = nullptr);
+		Order* getLast();
+
+		// Get a specific order by sequential index
+		Order* at(size_t i);
+
+		bool simplify();
+	private:
+		Order* first = nullptr;
+		Order* last = nullptr;
+
+		uint64* OrderParamRef(Order* ptr, size_t i);
+
+		// Convert jumps to exact address references
+		bool simplifyJumps();
+		// Remove blank commands
+		bool simplifyRemoveBlanks();
+};
+
+
+
+
+std::string ToString(Action code);
 
 
 #include "./bytecode.cpp"

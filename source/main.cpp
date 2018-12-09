@@ -16,7 +16,7 @@
 
 
 int main(int argc, char* argv[]){
-	if (checkTypeSizing() == false){
+	if (CheckTypeSizing() == false){
 		std::cerr << std::endl << "Error: Sizing error obstructing execution" << std::endl;
 		return 1;
 	}
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]){
 		file.seekg(0, std::ios::beg);
 
 		fileData.assign((std::istreambuf_iterator<char>(file)),
-										 std::istreambuf_iterator<char>());
+		                 std::istreambuf_iterator<char>());
 	}else{
 		std::cerr << "Invalid file: " << argv[1] << std::endl;
 		return 1;
@@ -97,32 +97,33 @@ int main(int argc, char* argv[]){
 	// Interprete data
 	auto tokens = Tokenize::SplitLines(fileData);
 	fileData.resize(0); // Delete the original file cache
+	std::cout << "Tokenized" << std::endl;
 	Function root = Function("root", tokens, 0, nullptr);
-	tokens.resize(0);
+	// tokens.resize(0);
 
 	if (root.valid == false){
-		std::cerr << "Unable to execute due to error(s)" << std::endl;
+		std::cerr << std::endl << "Error: Unable to execute due to invalid code." << std::endl;
 		return 1;
 	}
+
+	std::cout << "Interpreted code" << std::endl;
+	return 0;
 
 
 	// Start up execution space
 	Thread::Pool workSpace(THREAD_COUNT);
 
-	std::this_thread::sleep_for( std::chrono::milliseconds(1000) );
-
 	// Create dumny instances to check the event loops are working
-	Instance dumy;
-	for (size_t i=0; i<THREAD_COUNT*1000; i++){
-		workSpace.Issue({&dumy, 0});
-	}
-
+	Instance dumy(&root);
+	workSpace.Issue({&dumy, 0});
 
 	// Blocks until all workers have no remaining work
 	workSpace.WaitUntilDone();
+	std::cout << "All work completed" << std::endl;
 
 	// Clean up all threads
 	workSpace.Close();
+	std::cout << "Closed" << std::endl;
 
 	return 0;
 }

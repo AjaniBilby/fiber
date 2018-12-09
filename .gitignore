@@ -8,6 +8,9 @@
 *.exe
 *.out
 *.app
+*.exp
+*.lib
+*.pdb
 
 # Fiber
 *.fib
@@ -17,3 +20,5 @@
 .vscode/*
 # Include some settings to ensure consistent layout
 !.vscode/settings.json
+# Include debug lauch patterns
+!.vscode/launch.json

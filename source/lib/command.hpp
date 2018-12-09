@@ -2,13 +2,13 @@
 
 #include <string>
 
-enum class ComparisonOpperators: unsigned short{
+enum class ComparisonOpperators: unsigned char{
 	greater,
 	lesser,
 	equal
 };
 
-enum class Command: unsigned short{
+enum class Command: unsigned char{
 	invalid,
 	blank,           // (internal use only)
 	jump,            // (internal use only)

@@ -25,20 +25,22 @@ namespace Interpreter{
 		this->type = OpperandType::Unknown;
 		this->valid = false;
 
+		int8 temp;
+
 		// Register Address opperand
 		if (str[0] == '@'){
 			this->type = OpperandType::RegisterAddress;
-			this->data.int8 = GetRegisterID(str.substr(1, 2));
-			this->valid = (this->data.int8 != -1);
-			this->data.uint64 = this->data.int8;
+			temp = GetRegisterID(str.substr(1, 2));
+			this->valid = (temp != -1);
+			this->data.uint64 = temp;
 			return;
 		}
 		// Register value opperand
 		if (str[0] == '&'){
 			this->type = OpperandType::RegisterValue;
-			this->data.int8 = GetRegisterID(str.substr(1, 2));
-			this->valid = (this->data.int8 != -1);
-			this->data.uint64 = this->data.int8;
+			temp = GetRegisterID(str.substr(1, 2));
+			this->valid = (temp != -1);
+			this->data.uint64 = temp;
 			return;
 		}
 
@@ -80,6 +82,11 @@ namespace Interpreter{
 				return;
 			}
 		}
+
+		if (this->type == OpperandType::Unknown){
+			this->valid = false;
+		}
+		return;
 	};
 
 	// Convert a class' opperand type to string
@@ -237,7 +244,9 @@ namespace Interpreter{
 		auto opper = Interpreter::Opperand(act.param[1]);
 		if (opper.type == Interpreter::OpperandType::RegisterAddress){     // Valid opperand type
 			addressMode = true;
+			// Prevents else statement from executing
 		}else if (opper.type == Interpreter::OpperandType::RegisterValue){ // Valid opperand type
+			// Prevents else statement from executing
 		}else{                                                             // Invalid opperand type
 			std::cerr << "Error: Invalid opperand A; must be a register value or address." << std::endl;
 			std::cerr << "  arg : " << act.param[1] << std::endl;
@@ -711,7 +720,6 @@ namespace Interpreter{
 			out.param[4] = opper.data.uint64;
 		}
 
-
 		return out;
 	};
 
@@ -739,10 +747,6 @@ namespace Interpreter{
 	Action Convert(RawAction act, Function* context){
 		Action out;
 		out.cmd = Command::invalid;
-
-		#if DEBUG
-		std::cout << "  interping: " << act.param[0] << std::endl;
-		#endif
 
 		switch ( CommandFrom(act.param[0]) ){
 			case Command::invalid:
