@@ -1,5 +1,17 @@
 #!/bin/bash
 
+
+# Check if this is a debug build as defined in arguments
+if [ "$1" = "debug" ]; then
+	echo "Debug Mode"
+
+	Command=clang++ -g -gcodeview "./source/main.cpp" -o "./fiber.out" -pthread -std=c++14 -Xclang -flto-visibility-public-std -fsanitize=address -O0
+	eval $Command
+
+	exit
+fi
+
+
 Command="clang++ source/main.cpp -std=c++14 -pthread -o fiber.out"
 
 
