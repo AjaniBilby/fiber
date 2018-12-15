@@ -3,9 +3,12 @@
 
 # Check if this is a debug build as defined in arguments
 if [ "$1" = "debug" ]; then
-	echo "Debug Mode"
+	echo "Debug Mode..."
 
 	Command=clang++ -g -gcodeview "./source/main.cpp" -o "./fiber.out" -pthread -std=c++14 -Xclang -flto-visibility-public-std -fsanitize=address -O0
+
+	echo ""
+	echo $Command
 	eval $Command
 
 	exit

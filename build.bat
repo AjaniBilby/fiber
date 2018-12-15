@@ -5,6 +5,9 @@ rem If this is a debug purpose build
 if /I "%1"=="debug" (
 	shift
 
+	echo Generating debugging build...
+	echo.
+
 	set Command=clang++ -g -gcodeview "./source/main.cpp" -o "./fiber.exe" -std=c++14 -Xclang -flto-visibility-public-std -fsanitize=address -O0
 	set Optimize=n
 	set MemSafe=y

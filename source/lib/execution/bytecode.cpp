@@ -11,16 +11,22 @@ uint64 Order::get(size_t i){
 		return -1;
 	}
 
-	uint64* out = reinterpret_cast<uint64*>(this) + sizeof(Order) + i*sizeof(uint64);
+	char *ptr = reinterpret_cast<char*>(this);
+	ptr += sizeof(Order);
+	ptr += sizeof(uint64) * i;
 
-	return *out;
+	return *( reinterpret_cast<uint64*>(ptr) );
 };
 uint64* Order::ref(size_t i){
 	if (i > this->params){
 		return nullptr;
 	}
 
-	return reinterpret_cast<uint64*>(this) + sizeof(Order) + i*sizeof(uint64);
+	char *ptr = reinterpret_cast<char*>(this);
+	ptr += sizeof(Order);
+	ptr += sizeof(uint64) * i;
+
+	return reinterpret_cast<uint64*>(ptr);
 };
 
 
@@ -47,44 +53,40 @@ Bytecode::~Bytecode(){
 
 void Bytecode::append(Action act){
 	size_t params = act.param.size();
-	size_t bytes = sizeof(Order) + params*sizeof(act.param[0]);
-
-	std::cout << "  Creating " << ToString(act.cmd) << " of " << bytes << " long" << std::endl;
+	size_t bytes  = sizeof(Order) + params*sizeof(act.param[0]);
 
 	// Allocate order with excess space to store parameters as trailing data
 	Order *addr = (Order*)malloc(bytes);
-	std::cout << "  Allocated space" << std::endl;
 
 	// Write metadata
-	addr->cmd = act.cmd;   // Command ID
-	addr->line = act.line; // Line number
-	addr->params = params; // Number of parameters
-	addr->next = nullptr;  // Mark this as the end of the chain
-
-	std::cout << "  Inserted metadata" << std::endl;
+	addr->cmd    = act.cmd;   // Command ID
+	addr->line   = act.line;  // Line number
+	addr->params = params;    // Number of parameters
+	addr->next   = nullptr;   // Mark this as the end of the chain
 
 	// Transfer the parameter values
 	uint64* ptr;
 	for (size_t i=0; i<params; i++){
 		ptr = addr->ref(i);
+
+		if (ptr == nullptr){
+			std::cerr << "An unknown error has occured. Action parameter count changed mid writting to bytecode" << std::endl;
+			std::cerr << "  command: " << ToString(act) << std::endl;
+		}
+
 		*ptr = act.param[i];
 	}
-	std::cout << "  Transfered Parameters" << std::endl;
 
 	// Chain the new order to the linked list
-	if (this->last == nullptr){
-		this->last = addr;
-	}else{
+	if (this->last != nullptr){
 		this->last->next = addr;
-		this->last = addr;
 	}
-	std::cout << "  Re aligned the end of the linked list" << std::endl;
+	this->last = addr;
 
 	// If the chain does not have a starting order, make this new order the start
 	if (this->first == nullptr){
 		this->first = addr;
 	}
-	std::cout << "  Re aligned the start of the linked list" << std::endl;
 
 	return;
 };
@@ -115,14 +117,12 @@ Order* Bytecode::getLast(){
 
 
 bool Bytecode::simplify(){
-	std::clog << "Simplifying jumps\n";
 	if (this->simplifyJumps() == false){
 		return false;
 	}
-	std::clog << "Simplifying blanks\n";
+
 	this->simplifyRemoveBlanks();
 
-	std::clog << "Simplifying done\n";
 	return true;
 };
 bool Bytecode::simplifyJumps(){
@@ -154,12 +154,10 @@ bool Bytecode::simplifyJumps(){
 bool Bytecode::simplifyRemoveBlanks(){
 	// NOTE: MUST EXECUTE AFTER SIMPLIFY JUMPS
 
-	Order* finish;
 	Order* prev = nullptr;
 	Order* curr = this->next();
-	while (curr != nullptr){
-		std::cout << "Step: " << ToString(curr->cmd) << " " << std::to_string(curr->line) << std::endl;
 
+	while (curr != nullptr){
 		if (curr->cmd == Command::blank){
 			// If this is the first element
 			if (prev == nullptr){
@@ -171,17 +169,18 @@ bool Bytecode::simplifyRemoveBlanks(){
 				continue;
 			}
 
-			prev->next = this->next(curr); // Change the link addres to skip the element
-			free(curr);                    // Unallocate the unlinked element
-			curr = prev->next;             // Move to the next item
+			prev->next = this->next(curr);
+			free(curr);
+			curr = prev->next;
+
 			continue;
 		}
 
-		finish = curr;
+		prev = curr;
 		curr = this->next(curr);
 	}
 
-	this->last = finish;
+	this->last = prev;
 
 	return true;
 }

@@ -19,6 +19,9 @@ class Instance{
 
 		Instance(Function *reference, Instance *parent);
 		void Process(size_t position);
+
+	private:
+		void CmdMath();
 };
 
 

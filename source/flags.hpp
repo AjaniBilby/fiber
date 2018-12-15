@@ -1,6 +1,6 @@
 #pragma once
 
-#define DEBUG true
+#define DEBUG_SHOW_THREAD_ACTIVITY false
 
 // A string describing the application version
 #define FIBER_VERSION "v0.0.0a"

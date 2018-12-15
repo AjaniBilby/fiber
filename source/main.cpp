@@ -97,17 +97,14 @@ int main(int argc, char* argv[]){
 	// Interprete data
 	auto tokens = Tokenize::SplitLines(fileData);
 	fileData.resize(0); // Delete the original file cache
-	std::cout << "Tokenized" << std::endl;
 	Function root = Function("root", tokens, 0, nullptr);
-	// tokens.resize(0);
+	tokens.resize(0); // Delete the tokens now that they are consumed
 
 	if (root.valid == false){
 		std::cerr << std::endl << "Error: Unable to execute due to invalid code." << std::endl;
 		return 1;
 	}
 
-	std::cout << "Interpreted code" << std::endl;
-	return 0;
 
 
 	// Start up execution space
@@ -119,11 +116,9 @@ int main(int argc, char* argv[]){
 
 	// Blocks until all workers have no remaining work
 	workSpace.WaitUntilDone();
-	std::cout << "All work completed" << std::endl;
 
 	// Clean up all threads
 	workSpace.Close();
-	std::cout << "Closed" << std::endl;
 
 	return 0;
 }

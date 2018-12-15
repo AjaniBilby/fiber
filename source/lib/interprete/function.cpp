@@ -77,11 +77,6 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 		next.push_back(tokens[i]);
 	}
-	#if DEBUG
-	std::cout << "Segregated children" << std::endl;
-	#endif
-
-
 
 	// Interpret raw tokens
 	std::vector<Action> actions;
@@ -98,10 +93,6 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	}
 	tokens.resize(0);
 	next.resize(0);
-	#if DEBUG
-	std::cout << "Interpreted tokens" << std::endl;
-	#endif
-
 
 	// Simplify initilize behaviour
 	//  See: docs/internals/commands/initilize
@@ -190,14 +181,10 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			actions[k].param.resize(0);
 		}
 	}
-	#if DEBUG
-	std::cout << "Compiled initilize behvaiour" << std::endl;
-	#endif
-
-
 
 	// Simplify if behaviour
 	//  See: docs/internals/commands/if
+	size = actions.size();
 	for (size_t i=0; i<size; i++){
 		if (actions[i].cmd == Command::gate){
 
@@ -233,15 +220,9 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				return;
 			}
 
-			if (actions[j+1].cmd != Command::gateOther || j+1 >= size){ // No else clause
-				actions[i+1].cmd = Command::jump;
-				actions[i+1].param.resize(1);
-				actions[i+1].param[0] = (j+1) - (i+1);
-				actions[j].cmd = Command::blank;
-				actions[j].param.resize(0);
-			}else{ // Has else clause
+			if (j+1 < size && actions[j+1].cmd == Command::gateOther){ // If there is an else clause
 				// Check the else clause has an open bracket
-				if (actions[j+2].cmd != Command::blockOpen || j+2 >= size){
+				if (j+2 < size || actions[j+2].cmd != Command::blockOpen){
 					std::cerr << "Error: Invalid else clause, missing opening bracket." << std::endl;
 					std::cerr << "  line: " << actions[j+1].line << std::endl;
 
@@ -285,35 +266,22 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				actions[j+2].param.resize(0);
 				actions[k].cmd = Command::blank;
 				actions[k].param.resize(0);
+			}else{ // Has no else clause
+				actions[i+1].cmd = Command::jump;
+				actions[i+1].param.resize(1);
+				actions[i+1].param[0] = (j+1) - (i+1);
+				actions[j].cmd = Command::blank;
+				actions[j].param.resize(0);
 			}
 		}
 	}
 
-	#if DEBUG
-	std::cout << "Compiled if behvaiour" << std::endl;
-	#endif
-
 	size = actions.size();
 	for (size_t i=0; i<size; i++){
 		this->code.append(actions[i]);
-		std::cout << ToString(actions[i]) << " -> " << ToString(this->code.getLast()) << std::endl;
-	}
-	#if DEBUG
-	std::cout << "Compacted code" << std::endl;
-	#endif
-
-	auto ptr = this->code.next();
-	std::cout << "Check compaction" << std::endl;
-	while (ptr != nullptr){
-		std::cout << "  " << ToString(ptr) << std::endl;
-		ptr = this->code.next(ptr);
 	}
 
-
-	// this->code.simplify();
-	#if DEBUG
-	std::cout << "Simplified Jumps" << std::endl;
-	#endif
+	this->code.simplify();
 
 	return;
 };

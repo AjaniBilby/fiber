@@ -98,9 +98,9 @@ void Thread::Worker::Process(){
 	std::unique_lock<std::mutex> lck(this->mtx);
 	std::string str;
 
-	#if DEBUG
-	str = "Worker " + std::to_string(this->workerID) + " generated\n";
-	std::cout << str;
+	#if DEBUG_SHOW_THREAD_ACTIVITY
+	str = "Thread[" + std::to_string(this->workerID) + "]: Spawned\n";
+	std::clog << str;
 	#endif
 
 	EventLoop::SearchResult result;
@@ -109,22 +109,22 @@ void Thread::Worker::Process(){
 
 		if (result.found == true){
 			// Execute the task
-			#if DEBUG
-			str = "Worker " + std::to_string(this->workerID) + " processing..\n";
-			std::cout << str;
+			#if DEBUG_SHOW_THREAD_ACTIVITY
+			str = "Thread[" + std::to_string(this->workerID) + "]: Processing task\n";
+			std::clog << str;
 			#endif
 			reinterpret_cast<Instance*>(result.data.reference)->Process(result.data.position);
 		}else{
 			// Suspend the thread until notified of new tasks
 			this->active = false;
-			#if DEBUG
-			str = "Worker " + std::to_string(this->workerID) + " sleeping..\n";
-			std::cout << str;
+			#if DEBUG_SHOW_THREAD_ACTIVITY
+			str = "Thread[" + std::to_string(this->workerID) + "]: Entering stasis\n";
+			std::clog << str;
 			#endif
 			this->ping.wait(lck);
-			#if DEBUG
-			str = "Worker " + std::to_string(this->workerID) + " woken..\n";
-			std::cout << str;
+			#if DEBUG_SHOW_THREAD_ACTIVITY
+			str = "Thread[" + std::to_string(this->workerID) + "]: Reanimated\n";
+			std::clog << str;
 			#endif
 			this->active = true;
 
@@ -136,10 +136,10 @@ void Thread::Worker::Process(){
 		}
 	}
 
-	#if DEBUG
-	str = "Worker " + std::to_string(this->workerID) + " destorying\n";
+	#if DEBUG_SHOW_THREAD_ACTIVITY
+	str = "Thread[" + std::to_string(this->workerID) + "]: Destorying\n";
+	std::clog << str;
 	#endif
-	std::cout << str;
 
 	return;
 };
