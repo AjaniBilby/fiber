@@ -75,16 +75,16 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			continue;
 		}
 
+
 		next.push_back(tokens[i]);
 	}
 
 	// Interpret raw tokens
+	size = next.size();
 	std::vector<Action> actions;
 	actions.resize(size);
-	tokens = next;
-	size = tokens.size();
 	for (size_t i=0; i<size; i++){
-		actions[i] = Interpreter::Convert(tokens[i], this);
+		actions[i] = Interpreter::Convert(next[i], this);
 
 		if (actions[i].cmd == Command::invalid){
 			this->valid = false;

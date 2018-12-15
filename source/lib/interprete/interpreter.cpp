@@ -26,9 +26,10 @@ namespace Interpreter{
 		this->valid = false;
 
 		int8 temp;
+		uint64 length = str.size();
 
 		// Register Address opperand
-		if (str[0] == '@'){
+		if (length >= 3 && str[0] == '@'){
 			this->type = OpperandType::RegisterAddress;
 			temp = GetRegisterID(str.substr(1, 2));
 			this->valid = (temp != -1);
@@ -36,15 +37,13 @@ namespace Interpreter{
 			return;
 		}
 		// Register value opperand
-		if (str[0] == '&'){
+		if (length >= 3 && str[0] == '&'){
 			this->type = OpperandType::RegisterValue;
 			temp = GetRegisterID(str.substr(1, 2));
 			this->valid = (temp != -1);
 			this->data.uint64 = temp;
 			return;
 		}
-
-		uint64 length = str.size();
 
 		// Intake hexidecimal data as byte-wise data
 		if (length > 2){
@@ -83,9 +82,9 @@ namespace Interpreter{
 			}
 		}
 
-		if (this->type == OpperandType::Unknown){
-			this->valid = false;
-		}
+		// Invalid opperand
+		this->type = OpperandType::Unknown;
+		this->valid = false;
 		return;
 	};
 
@@ -235,7 +234,7 @@ namespace Interpreter{
 			out.cmd = Command::invalid;
 			return out;
 		}
-		out.param.resize(5);
+		out.param.resize(6);
 
 		bool addressMode = false;
 
@@ -828,3 +827,16 @@ namespace Interpreter{
 		return out;
 	};
 }
+
+
+std::string ToString(RawAction act){
+	std::string str;
+	size_t size = act.param.size();
+
+	str = act.param[0] + "@" + std::to_string(act.line) + ":";
+	for (size_t i=1; i<size; i++){
+		str += " " + act.param[1];
+	}
+
+	return str;
+};

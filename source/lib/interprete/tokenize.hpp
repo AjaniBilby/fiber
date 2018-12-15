@@ -12,4 +12,6 @@ class RawAction{
 		uint64 line;
 };
 
+std::string ToString(RawAction act);
+
 #include "./tokenize.cpp"

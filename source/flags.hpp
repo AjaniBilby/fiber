@@ -5,9 +5,6 @@
 // A string describing the application version
 #define FIBER_VERSION "v0.0.0a"
 
-// The default queue length
-unsigned long DEFAULT_QUEUE_LENGTH = 100;
-
 // The number of works to be initilized by default
 size_t THREAD_COUNT = 4;
 

@@ -35,12 +35,12 @@ namespace Interpreter{
 
 	class Opperand{
 		public:
-			bool valid;
-			OpperandType type;
-			Handle data;
+			bool          valid;
+			OpperandType  type;
+			Handle        data;
 
-			Opperand();
-			Opperand(std::string);
+			Opperand ();
+			Opperand (std::string);
 
 			std::string typeToString();
 	};
