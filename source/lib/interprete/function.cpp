@@ -276,12 +276,26 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 		}
 	}
 
+	// HEAR YE HEAR YE
 	size = actions.size();
+	std::cout << "Pushing " << size << std::endl;
 	for (size_t i=0; i<size; i++){
+		std::cout << "  " << ToString(actions[i]) << std::endl;
 		this->code.append(actions[i]);
 	}
 
+	auto ptr = this->code.next();
+	while (ptr != nullptr){
+		std::cout << "  " << ToString(ptr) << std::endl;
+	}
+
+	std::cout << "Simplifying" << std::endl;
 	this->code.simplify();
+
+	ptr = this->code.next();
+	while (ptr != nullptr){
+		std::cout << "  " << ToString(ptr) << std::endl;
+	}
 
 	return;
 };

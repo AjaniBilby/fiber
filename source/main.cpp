@@ -104,6 +104,7 @@ int main(int argc, char* argv[]){
 		std::cerr << std::endl << "Error: Unable to execute due to invalid code." << std::endl;
 		return 1;
 	}
+	std::cout << "Inperpreted Code" << std::endl;
 
 
 
@@ -119,6 +120,8 @@ int main(int argc, char* argv[]){
 
 	// Clean up all threads
 	workSpace.Close();
+
+	std::cout << "DONE" << std::endl;
 
 	return 0;
 }

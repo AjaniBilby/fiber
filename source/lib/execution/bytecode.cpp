@@ -1,11 +1,6 @@
 #include "./bytecode.hpp"
 
 
-Order::~Order(){
-	// Since the object was initilized as a heap larger than just the class (includes the parameters);
-	// when it is destoryed it will take them with it
-	free(this);
-};
 uint64 Order::get(size_t i){
 	if (i > this->params){
 		return -1;
@@ -42,11 +37,15 @@ Bytecode::~Bytecode(){
 	// Unallocate each order
 	Order* curr = this->next();
 	Order* nxt;
+	std::cout << "Wipping byte code" << std::endl;
 	while (curr != nullptr){
+		std::cout << "  gathering next point" << std::endl;
 		nxt = this->next(curr);
 
-		free(curr);
+		std::cout << "  freeing bytes" << std::endl;
+		delete curr;
 
+		std::cout << "  removed byte" << std::endl;
 		curr = nxt;
 	}
 };

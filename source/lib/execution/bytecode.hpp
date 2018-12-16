@@ -14,7 +14,6 @@ struct Action{
 	std::vector<uint64> param;
 };
 
-// NOTE: Must be 8 bytes
 class Order{
 	public:
 		Command cmd;
@@ -22,11 +21,6 @@ class Order{
 		uint8 params;
 
 		Order* next;
-
-		Order(){
-			std::cerr << "Error: An order was not initilized out-side of it's self" << std::endl;
-		};
-		~Order();
 
 		uint64  get(size_t i=0);
 		uint64* ref(size_t i=0);
@@ -48,9 +42,10 @@ class Bytecode{
 		Order* at(size_t i);
 
 		bool simplify();
+
+		Order* last = nullptr;
 	private:
 		Order* first = nullptr;
-		Order* last = nullptr;
 
 		uint64* OrderParamRef(Order* ptr, size_t i);
 
