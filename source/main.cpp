@@ -98,6 +98,7 @@ int main(int argc, char* argv[]){
 	auto tokens = Tokenize::SplitLines(fileData);
 	fileData.resize(0); // Delete the original file cache
 	Function root = Function("root", tokens, 0, nullptr);
+	root.finalize();
 	tokens.resize(0); // Delete the tokens now that they are consumed
 
 	if (root.valid == false){
@@ -120,8 +121,6 @@ int main(int argc, char* argv[]){
 
 	// Clean up all threads
 	workSpace.Close();
-
-	std::cout << "DONE" << std::endl;
 
 	return 0;
 }

@@ -81,7 +81,6 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 	// Interpret raw tokens
 	size = next.size();
-	std::vector<Action> actions;
 	actions.resize(size);
 	for (size_t i=0; i<size; i++){
 		actions[i] = Interpreter::Convert(next[i], this);
@@ -276,17 +275,29 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 		}
 	}
 
-	// HEAR YE HEAR YE
-	size = actions.size();
+
+	size = this->child.size();
+	for (size_t i=0; i<size; i++){
+		this->child[i].finalize();
+	}
+
+	return;
+};
+
+
+void Function::finalize(){
+	size_t size = actions.size();
 	std::cout << "Pushing " << size << std::endl;
 	for (size_t i=0; i<size; i++){
-		std::cout << "  " << ToString(actions[i]) << std::endl;
+		std::cout << " " << ToString(actions[i]) << std::endl;
 		this->code.append(actions[i]);
 	}
 
+	std::cout << "  Next" << std::endl;
 	auto ptr = this->code.next();
 	while (ptr != nullptr){
-		std::cout << "  " << ToString(ptr) << std::endl;
+		std::cout << "   " << ToString(ptr) << std::endl;
+		ptr = this->code.next(ptr);
 	}
 
 	std::cout << "Simplifying" << std::endl;
@@ -295,9 +306,10 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	ptr = this->code.next();
 	while (ptr != nullptr){
 		std::cout << "  " << ToString(ptr) << std::endl;
+		ptr = this->code.next(ptr);
 	}
 
-	return;
+	this->actions.resize(0);
 };
 
 

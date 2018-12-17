@@ -4,7 +4,6 @@
 
 #include <string>
 #include <vector>
-
 struct FunctionReference{
 	void* ptr;
 	size_t relDepth;
@@ -25,6 +24,10 @@ class Function{
 
 		// Find a function with the supplied name
 		FunctionReference find(std::string str);
+
+		void finalize();
+	private:
+		std::vector<Action> actions;
 };
 
 

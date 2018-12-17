@@ -43,9 +43,9 @@ class Bytecode{
 
 		bool simplify();
 
-		Order* last = nullptr;
 	private:
 		Order* first = nullptr;
+		Order* last = nullptr;
 
 		uint64* OrderParamRef(Order* ptr, size_t i);
 
