@@ -221,7 +221,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 			if (j+1 < size && actions[j+1].cmd == Command::gateOther){ // If there is an else clause
 				// Check the else clause has an open bracket
-				if (j+2 < size || actions[j+2].cmd != Command::blockOpen){
+				if (j+2 >= size || actions[j+2].cmd != Command::blockOpen){
 					std::cerr << "Error: Invalid else clause, missing opening bracket." << std::endl;
 					std::cerr << "  line: " << actions[j+1].line << std::endl;
 
@@ -255,10 +255,10 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 				// Convert necessary commands
 				actions[i+1].cmd = Command::jump;
 				actions[i+1].param.resize(1);
-				actions[i+1].param[0] = (j+3);
+				actions[i+1].param[0] = j+2;
 				actions[j].cmd = Command::jump;
 				actions[j].param.resize(1);
-				actions[j].param[0] = (k+1);
+				actions[j].param[0] = k;
 				actions[j+1].cmd = Command::blank;
 				actions[j+1].param.resize(0);
 				actions[j+2].cmd = Command::blank;
@@ -268,7 +268,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 			}else{ // Has no else clause
 				actions[i+1].cmd = Command::jump;
 				actions[i+1].param.resize(1);
-				actions[i+1].param[0] = (j+1) - (i+1);
+				actions[i+1].param[0] = j;
 				actions[j].cmd = Command::blank;
 				actions[j].param.resize(0);
 			}
@@ -287,27 +287,11 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 void Function::finalize(){
 	size_t size = actions.size();
-	std::cout << "Pushing " << size << std::endl;
 	for (size_t i=0; i<size; i++){
-		std::cout << " " << ToString(actions[i]) << std::endl;
 		this->code.append(actions[i]);
 	}
 
-	std::cout << "  Next" << std::endl;
-	auto ptr = this->code.next();
-	while (ptr != nullptr){
-		std::cout << "   " << ToString(ptr) << std::endl;
-		ptr = this->code.next(ptr);
-	}
-
-	std::cout << "Simplifying" << std::endl;
 	this->code.simplify();
-
-	ptr = this->code.next();
-	while (ptr != nullptr){
-		std::cout << "  " << ToString(ptr) << std::endl;
-		ptr = this->code.next(ptr);
-	}
 
 	this->actions.resize(0);
 };

@@ -1,0 +1,17 @@
+if &rA
+{
+	# something
+	set @rA local
+}
+
+if &rA
+{
+	# something
+	set @rA local
+}
+else
+{
+	set @rA parse
+}
+
+set @rA local

@@ -150,9 +150,26 @@ bool Bytecode::simplifyJumps(){
 bool Bytecode::simplifyRemoveBlanks(){
 	// NOTE: MUST EXECUTE AFTER SIMPLIFY JUMPS
 
+
 	Order* prev = nullptr;
 	Order* curr = this->next();
 
+
+	// Index all jumps
+	std::vector<Order*> index;
+	while (curr != nullptr){
+		if (curr->cmd == Command::jump){
+			index.push_back(curr);
+		}
+
+		curr = this->next(curr);
+	}
+	size_t indexes = index.size();
+
+
+	curr = this->next();
+	uint64 addr;
+	bool isLast = false;
 	while (curr != nullptr){
 		if (curr->cmd == Command::blank){
 			// If this is the first element
@@ -165,9 +182,38 @@ bool Bytecode::simplifyRemoveBlanks(){
 				continue;
 			}
 
+
+			addr = reinterpret_cast<uint64>(curr);
+
+			// Remark the end of the chain if this was the last element
+			if (curr->next == nullptr){
+				this->last = prev;
+				isLast = true; // Execution will stop after this round
+			}
+
+			// Remove this element from the chain
 			prev->next = this->next(curr);
 			free(curr);
 			curr = prev->next;
+
+			// Insure this does not break any jumps
+			// Find any jumps that pointed to the removed element
+			for (size_t i=0; i<indexes; i++){
+				if (index[i]->get(0) == addr){
+
+					// If this jump was pointing to the end
+					// Mark it as a stop point instead of finding a new endpoint
+					if (isLast){
+						index[i]->cmd = Command::stop;
+						index[i]->params = 0;
+					}else{
+						// Replace the target with the element after it
+						auto ptr = index[i]->ref(0);
+						*ptr = reinterpret_cast<uint64>(curr);
+					}
+
+				}
+			}
 
 			continue;
 		}

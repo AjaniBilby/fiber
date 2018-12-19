@@ -14,8 +14,25 @@ void Instance::Process(size_t pos = 0){
 	auto ptr = code->next();
 	bool increment = true;
 
+	std::cout << "Executing " << ptr << std::endl;
+
 	while (ptr != nullptr){
+		std::cout << increment << " ";
 		increment = true;
+
+		std::cout << ToString(ptr) << std::endl;
+
+		switch(ptr->cmd){
+			case Command::jump:
+				ptr = reinterpret_cast<Order*>( ptr->get(0) );
+				increment = false;
+				break;
+			case Command::stop:
+				// Trigger the while loop to stop on next itteration
+				increment = false;
+				ptr = nullptr;
+				break;
+		}
 
 		if (increment == true){
 			ptr = code->next(ptr);
