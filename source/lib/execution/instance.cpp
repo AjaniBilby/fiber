@@ -17,7 +17,6 @@ void Instance::Process(size_t pos = 0){
 	std::cout << "Executing " << ptr << std::endl;
 
 	while (ptr != nullptr){
-		std::cout << increment << " ";
 		increment = true;
 
 		std::cout << ToString(ptr) << std::endl;
