@@ -81,11 +81,11 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 	// Interpret raw tokens
 	size = next.size();
-	actions.resize(size);
+	this->actions.resize(size);
 	for (size_t i=0; i<size; i++){
-		actions[i] = Interpreter::Convert(next[i], this);
+		this->actions[i] = Interpreter::Convert(next[i], this);
 
-		if (actions[i].cmd == Command::invalid){
+		if (this->actions[i].cmd == Command::invalid){
 			this->valid = false;
 			return;
 		}
@@ -93,188 +93,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	tokens.resize(0);
 	next.resize(0);
 
-	// Simplify initilize behaviour
-	//  See: docs/internals/commands/initilize
-	for (size_t i=0; i<size; i++){
-		if (actions[i].cmd == Command::initilize){
-
-			// Check it has a code block after it
-			if (i+1 >= size || actions[i+1].cmd != Command::blockOpen){
-				std::cerr << "Error: Invalid initilization; missing preamble." << std::endl;
-				std::cerr << "  line: " << actions[i].line << std::endl;
-
-				this->valid = false;
-				return;
-			}
-
-
-			// Find the end of the preamble
-			size_t j=i+1;
-			size_t depth = 0;
-			for (; j<size; j++){
-				if (actions[j].cmd == Command::blockOpen){
-					depth++;
-				}
-				if (actions[j].cmd == Command::blockClose){
-					depth--;
-				}
-
-				if (depth == 0){
-					break;
-				}
-			}
-			if (j>=size || actions[j].cmd != Command::blockClose){
-				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
-				std::cerr << "  line: " << actions[i].line << std::endl;
-
-				this->valid = false;
-				return;
-			}
-
-
-			// Check for the second code block
-			if (j+1 >= size || actions[j+1].cmd != Command::blockOpen){
-				std::cerr << "Error : Invalid initilization; missing finishing code." << std::endl;
-				std::cerr << " line: " << actions[i].line << std::endl;
-
-				this->valid = false;
-				return;
-			}
-
-
-			// Find the end of the preamble
-			size_t k=j+1;
-			depth = 0;
-			for (; k<size; k++){
-				if (actions[k].cmd == Command::blockOpen){
-					depth++;
-				}
-				if (actions[k].cmd == Command::blockClose){
-					depth--;
-				}
-
-				if (depth == 0){
-					break;
-				}
-			}
-			if (k>=size || actions[k].cmd != Command::blockClose){
-				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
-				std::cerr << "  line: " << actions[i].line << std::endl;
-
-				this->valid = false;
-				return;
-			}
-			actions[k].cmd = Command::stop;
-
-
-			// Convert the necessary brackets
-			actions[i+1].cmd = Command::jump;
-			actions[i+1].param.resize(1);
-			actions[i+1].param[0] = (j+2);
-			actions[j].cmd = Command::jump;
-			actions[j].param.resize(1);
-			actions[j].param[0] = (k+2);
-			actions[j+1].cmd = Command::stop;
-			actions[j+1].param.resize(0);
-			actions[k].cmd = Command::stop;
-			actions[k].param.resize(0);
-		}
-	}
-
-	// Simplify if behaviour
-	//  See: docs/internals/commands/if
-	size = actions.size();
-	for (size_t i=0; i<size; i++){
-		if (actions[i].cmd == Command::gate){
-
-			// Check an opening bracket exists
-			if (i+1 >= size || actions[i+1].cmd != Command::blockOpen){
-				std::cerr << "Error: If statement is missing opening bracket on new line" << std::endl;
-				std::cerr << "  line: " << actions[i].line << std::endl;
-
-				this->valid = false;
-				return;
-			}
-
-			// Find the closing bracket
-			size_t j=i+1;   // starts on the opening bracket after the IF
-			size_t depth=0;
-			for (; j<size; j++){
-				if (actions[j].cmd == Command::blockOpen){
-					depth++;
-				}
-				if (actions[j].cmd == Command::blockClose){
-					depth--;
-				}
-
-				if (depth == 0){
-					break;
-				}
-			}
-			if (j >= size || actions[j].cmd != Command::blockClose){
-				std::cerr << "Error: Missing if statement closing bracket" << std::endl;
-				std::cerr << "  line: " << actions[i].line;
-
-				this->valid = false;
-				return;
-			}
-
-			if (j+1 < size && actions[j+1].cmd == Command::gateOther){ // If there is an else clause
-				// Check the else clause has an open bracket
-				if (j+2 >= size || actions[j+2].cmd != Command::blockOpen){
-					std::cerr << "Error: Invalid else clause, missing opening bracket." << std::endl;
-					std::cerr << "  line: " << actions[j+1].line << std::endl;
-
-					this->valid = false;
-					return;
-				}
-
-				// Find else closing bracket
-				size_t k=j+2; // start at the opening bracket after the else
-				depth = 0;
-				for (; k<size; k++){
-					if (actions[k].cmd == Command::blockOpen){
-						depth++;
-					}
-					if (actions[k].cmd == Command::blockClose){
-						depth--;
-					}
-
-					if (depth == 0){
-						break;
-					}
-				}
-				if (k>=size || actions[k].cmd != Command::blockClose){
-					std::cerr << "Error: Unable to find the closing bracket for else clause." << std::endl;
-					std::cerr << "  line: " << actions[j+2].line << std::endl;
-
-					this->valid = false;
-					return;
-				}
-
-				// Convert necessary commands
-				actions[i+1].cmd = Command::jump;
-				actions[i+1].param.resize(1);
-				actions[i+1].param[0] = j+2;
-				actions[j].cmd = Command::jump;
-				actions[j].param.resize(1);
-				actions[j].param[0] = k;
-				actions[j+1].cmd = Command::blank;
-				actions[j+1].param.resize(0);
-				actions[j+2].cmd = Command::blank;
-				actions[j+2].param.resize(0);
-				actions[k].cmd = Command::blank;
-				actions[k].param.resize(0);
-			}else{ // Has no else clause
-				actions[i+1].cmd = Command::jump;
-				actions[i+1].param.resize(1);
-				actions[i+1].param[0] = j;
-				actions[j].cmd = Command::blank;
-				actions[j].param.resize(0);
-			}
-		}
-	}
-
+	this->SimplifyBehaviour();
 
 	size = this->child.size();
 	for (size_t i=0; i<size; i++){
@@ -285,16 +104,221 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 };
 
 
-void Function::finalize(){
-	size_t size = actions.size();
+
+
+
+void Function::SimplifyBehaviour(){
+	this->SimplifyBehaviour_initilize();
+	this->SimplifyBehaviour_if();
+	this->SimplifyBehaviour_loop();
+};
+
+void Function::SimplifyBehaviour_if(){
+	// See: docs/internals/commands/if
+
+	size_t size = this->actions.size();
 	for (size_t i=0; i<size; i++){
-		this->code.append(actions[i]);
+		if (this->actions[i].cmd == Command::gate){
+
+			// Check an opening bracket exists
+			if (i+1 >= size || this->actions[i+1].cmd != Command::blockOpen){
+				std::cerr << "Error: If statement is missing opening bracket on new line" << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			// Find the closing bracket
+			size_t j=i+1;   // starts on the opening bracket after the IF
+			size_t depth=0;
+			for (; j<size; j++){
+				if (this->actions[j].cmd == Command::blockOpen){
+					depth++;
+				}
+				if (this->actions[j].cmd == Command::blockClose){
+					depth--;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+			if (j >= size || this->actions[j].cmd != Command::blockClose){
+				std::cerr << "Error: Missing if statement closing bracket" << std::endl;
+				std::cerr << "  line: " << this->actions[i].line;
+
+				this->valid = false;
+				return;
+			}
+
+			if (j+1 < size && this->actions[j+1].cmd == Command::gateOther){ // If there is an else clause
+				// Check the else clause has an open bracket
+				if (j+2 >= size || this->actions[j+2].cmd != Command::blockOpen){
+					std::cerr << "Error: Invalid else clause, missing opening bracket." << std::endl;
+					std::cerr << "  line: " << this->actions[j+1].line << std::endl;
+
+					this->valid = false;
+					return;
+				}
+
+				// Find else closing bracket
+				size_t k=j+2; // start at the opening bracket after the else
+				depth = 0;
+				for (; k<size; k++){
+					if (this->actions[k].cmd == Command::blockOpen){
+						depth++;
+					}
+					if (this->actions[k].cmd == Command::blockClose){
+						depth--;
+					}
+
+					if (depth == 0){
+						break;
+					}
+				}
+				if (k>=size || this->actions[k].cmd != Command::blockClose){
+					std::cerr << "Error: Unable to find the closing bracket for else clause." << std::endl;
+					std::cerr << "  line: " << this->actions[j+2].line << std::endl;
+
+					this->valid = false;
+					return;
+				}
+
+				// Convert necessary commands
+				this->actions[i+1].cmd = Command::jump;
+				this->actions[i+1].param.resize(1);
+				this->actions[i+1].param[0] = j+2;
+				this->actions[j].cmd = Command::jump;
+				this->actions[j].param.resize(1);
+				this->actions[j].param[0] = k;
+				this->actions[j+1].cmd = Command::blank;
+				this->actions[j+1].param.resize(0);
+				this->actions[j+2].cmd = Command::blank;
+				this->actions[j+2].param.resize(0);
+				this->actions[k].cmd = Command::blank;
+				this->actions[k].param.resize(0);
+			}else{ // Has no else clause
+				this->actions[i+1].cmd = Command::jump;
+				this->actions[i+1].param.resize(1);
+				this->actions[i+1].param[0] = j;
+				this->actions[j].cmd = Command::blank;
+				this->actions[j].param.resize(0);
+			}
+		}
+	}
+}
+
+void Function::SimplifyBehaviour_initilize(){
+	// See: docs/internals/commands/initilize
+
+	size_t size = this->actions.size();
+	for (size_t i=0; i<size; i++){
+		if (this->actions[i].cmd == Command::initilize){
+
+			// Check it has a code block after it
+			if (i+1 >= size || this->actions[i+1].cmd != Command::blockOpen){
+				std::cerr << "Error: Invalid initilization; missing preamble." << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+
+			// Find the end of the preamble
+			size_t j=i+1;
+			size_t depth = 0;
+			for (; j<size; j++){
+				if (this->actions[j].cmd == Command::blockOpen){
+					depth++;
+				}
+				if (this->actions[j].cmd == Command::blockClose){
+					depth--;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+			if (j>=size || this->actions[j].cmd != Command::blockClose){
+				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+
+			// Check for the second code block
+			if (j+1 >= size || this->actions[j+1].cmd != Command::blockOpen){
+				std::cerr << "Error : Invalid initilization; missing finishing code." << std::endl;
+				std::cerr << " line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+
+			// Find the end of the preamble
+			size_t k=j+1;
+			depth = 0;
+			for (; k<size; k++){
+				if (this->actions[k].cmd == Command::blockOpen){
+					depth++;
+				}
+				if (this->actions[k].cmd == Command::blockClose){
+					depth--;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+			if (k>=size || this->actions[k].cmd != Command::blockClose){
+				std::cerr << "Error: Invalid initilization; unable to find the end of preamble." << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+			this->actions[k].cmd = Command::stop;
+
+
+			// Convert the necessary brackets
+			this->actions[i+1].cmd = Command::jump;
+			this->actions[i+1].param.resize(1);
+			this->actions[i+1].param[0] = (j+2);
+			this->actions[j].cmd = Command::jump;
+			this->actions[j].param.resize(1);
+			this->actions[j].param[0] = (k+2);
+			this->actions[j+1].cmd = Command::stop;
+			this->actions[j+1].param.resize(0);
+			this->actions[k].cmd = Command::stop;
+			this->actions[k].param.resize(0);
+		}
+	}
+}
+
+void Function::SimplifyBehaviour_loop(){}
+
+
+
+
+
+void Function::finalize(){
+	size_t size = this->actions.size();
+	for (size_t i=0; i<size; i++){
+		this->code.append(this->actions[i]);
 	}
 
 	this->code.simplify();
 
 	this->actions.resize(0);
 };
+
+
+
 
 
 FunctionReference Function::find(std::string str){

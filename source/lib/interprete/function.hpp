@@ -28,6 +28,11 @@ class Function{
 		void finalize();
 	private:
 		std::vector<Action> actions;
+
+		void SimplifyBehaviour();
+		void SimplifyBehaviour_initilize();
+		void SimplifyBehaviour_if();
+		void SimplifyBehaviour_loop();
 };
 
 
