@@ -39,6 +39,8 @@ std::string ToString(Command cmd){
 			return "mode";
 		case Command::stop:
 			return "stop";
+		case Command::loop:
+			return "loop";
 		case Command::jump:
 			// For internal use only
 			return "Err(CMD:jump)";
@@ -91,6 +93,8 @@ Command CommandFrom(std::string str){
 		return Command::function;
 	} else if (str == "rtrn"){
 		return Command::rtrn;
+	} else if (str == "loop"){
+		return Command::loop;
 	}
 
 	return Command::invalid;

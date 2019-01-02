@@ -4,9 +4,16 @@
 
 #include <string>
 #include <vector>
+#include <stack>
+
 struct FunctionReference{
 	void* ptr;
 	size_t relDepth;
+};
+
+struct __BlockStackElement__{
+	size_t start;
+	size_t end;
 };
 
 class Function{

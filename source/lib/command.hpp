@@ -16,11 +16,12 @@ enum class Command: unsigned char{
 	set,             // set
 	mode,            // mode
 	math,            // math
-	gate,            // if
-	gateOther,       // else
 	compare,         // cmpr
 	bitwise,         // bit
+	gate,            // if
+	gateOther,       // else
 	initilize,       // init
+	loop,            // loop
 	blockExit,       // break
 	blockRepeat,     // continue
 	blockOpen,       // {

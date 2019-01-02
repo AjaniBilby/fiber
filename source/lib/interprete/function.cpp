@@ -300,7 +300,109 @@ void Function::SimplifyBehaviour_initilize(){
 	}
 }
 
-void Function::SimplifyBehaviour_loop(){}
+void Function::SimplifyBehaviour_loop(){
+	std::vector< __BlockStackElement__ > stack;
+	size_t stackSize = 0;
+
+	size_t size = this->actions.size();
+	for (size_t i=0; i<size; i++){
+
+		// Find new loops to add to the stack
+		if (this->actions[i].cmd == Command::loop){
+			// Check for opening bracket after loop decleartion
+			if (i+1 >= size || this->actions[i+1].cmd == Command::blockOpen){
+				std::cerr << "Error: Loop is missing an opening bracket" << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			// Find the ending bracket at the same depth
+			size_t depth = 1;
+			size_t     k = i+2;
+			for (; k<size; k++){
+				if (this->actions[k].cmd == Command::blockClose){
+					depth--;
+				}
+				if (this->actions[k].cmd == Command::blockOpen){
+					depth++;
+				}
+
+				if (depth == 0){
+					break;
+				}
+			}
+
+			if (k >= size || this->actions[k].cmd != Command::blockClose){
+				std::cerr << "Error: Loop is missing a closing bracket" << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			// Mark a new loop in play
+			stack.push_back({ i, k });
+			stackSize++;
+		}
+
+		// Pop the last element if it is now closed
+		//   Simplify the behaviour of the loop as well
+		size_t k = stackSize-1;
+		if ( i >= stack[k].end ){
+			// Erase the loop tag
+			this->actions[ stack[k].start ].cmd = Command::blank;
+			this->actions[ stack[k].start ].param.resize(0);
+
+			// Erase the opening bracket after the loop tag
+			this->actions[ stack[k].start+1 ].cmd = Command::blank;
+			this->actions[ stack[k].start+1 ].param.resize(0);
+
+			// Convert the closing bracket to a loop back point
+			this->actions[ stack[k].end ].cmd = Command::jump;
+			this->actions[ stack[k].end ].param.resize(1);
+			this->actions[ stack[k].end ].param[0] = stack[k].start+1;
+
+			// Remove the loop reference from the stack
+			stack.resize(k);
+		}
+
+		// Convert break behaviour
+		if (this->actions[i].cmd == Command::blockExit){
+			// Check the depth required is correct
+			if (this->actions[i].param[0] >= stackSize){
+				std::cerr << "Error: Invalid break command. The depth requested is deeper than actual depth." << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			// Convert the break to a relevent jump
+			this->actions[i].cmd = Command::jump;
+			this->actions[i].param[0] = stack[ stackSize - ( this->actions[i].param[0] + 1) ].end;
+			this->actions[i].param.resize(1);
+		}
+
+		// Convert jump behaviour
+		if (this->actions[i].cmd == Command::blockRepeat){
+			// Check the depth required is correct
+			if (this->actions[i].param[0] >= stackSize){
+				std::cerr << "Error: Invalid continue command. The depth requested is deeper than actual depth." << std::endl;
+				std::cerr << "  line: " << this->actions[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			// Convert the break to a relevent jump
+			this->actions[i].cmd = Command::jump;
+			this->actions[i].param[0] = stack[ stackSize - ( this->actions[i].param[0] + 1) ].start;
+			this->actions[i].param.resize(1);
+		}
+	}
+}
 
 
 
