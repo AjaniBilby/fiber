@@ -3,9 +3,34 @@
 Table::Table(std::vector<RawAction> tokens){
 	this->valid = true;
 
+
+	// Count the number of functions that exist
+	// (Reserve the vector size so the elements don't move)
+	size_t size = tokens.size();
+	size_t functionCount = 0;
+	size_t depth = 0;
+	for (size_t i=0; i<size; i++){
+		if (tokens[i].param[0] == "{"){
+			depth++;
+		} else if (tokens[i].param[0] == "}"){
+			depth--;
+		}	else if (tokens[i].param[0] == "func"){
+			if (depth != 0){
+				std::cerr << "Error: Function defined within another function" << std::endl;
+				std::cerr << "  line: " << tokens[i].line << std::endl;
+
+				this->valid = false;
+				return;
+			}
+
+			functionCount++;
+		}
+	}
+	this->function.reserve(functionCount);
+
+
 	// Raise function definitions
 	std::vector<RawAction> forward;
-	size_t size = tokens.size();
 	for (size_t i=0; i<size; i++){
 		// Forward any child functions through to a new child
 		if (tokens[i].param[0] == "func"){
@@ -72,11 +97,9 @@ Table::Table(std::vector<RawAction> tokens){
 		}
 
 
-		std::cerr << "Error: Attempting command out of function scope." << std::endl;
-		std::cerr << "       All commands must execute within the scope of a function" << std::endl;
+		std::cerr << "Error: Attempting command out of function scope. All commands must execute within the scope of a function" << std::endl;
 		std::cerr << "  line    : " << tokens[i].line << std::endl;
 		std::cerr << "  command : " << tokens[i].param[0] << std::endl;
-		std::cerr << "    " << ToString(tokens[i]) << std::endl;
 		this->valid = false;
 	}
 }
