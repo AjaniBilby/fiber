@@ -412,21 +412,12 @@ namespace Interpreter{
 			out.cmd = Command::invalid;
 			return out;
 		}
-		out.param.resize(3);
+		out.param.resize(2);
 
 
-		// Search for the function to ensure it exists
-		auto position = context->find(act.param[1]);
-		if (position.ptr == nullptr){
-			std::cerr << "Error: Invalid function initilization; no function with perscribed name" << std::endl;
-			std::cerr << "  arg : " << act.param[1] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
-
-			out.cmd = Command::invalid;
-			return out;
-		}
-		out.param[0] = reinterpret_cast<uint64>(position.ptr);
-		out.param[1] = position.relDepth;
+		// Save the name of the function for it to be referenced later
+		auto link = new std::string(act.param[1]);
+		out.param[0] = reinterpret_cast<uint64>(link);
 
 
 		// Read the new local space register address
@@ -447,7 +438,7 @@ namespace Interpreter{
 			out.cmd = Command::invalid;
 			return out;
 		}
-		out.param[2] = opper.data.uint64;
+		out.param[1] = opper.data.uint64;
 
 
 		out.cmd = Command::invalid;

@@ -97,11 +97,17 @@ int main(int argc, char* argv[]){
 	// Interprete data
 	auto tokens = Tokenize::SplitLines(fileData);
 	fileData.resize(0); // Delete the original file cache
-	Function root = Function("root", tokens, 0, nullptr);
-	root.finalize();
+	Table dictionary = Table(tokens);
 	tokens.resize(0); // Delete the tokens now that they are consumed
 
-	if (root.valid == false){
+	// Check a main function exists
+	auto mainFunction = dictionary.Find("main");
+	if (mainFunction == nullptr){
+		std::cerr << "Error: Missing start point \"main\" funciton." << std::endl;
+		dictionary.valid = false;
+	}
+
+	if (dictionary.valid == false){
 		std::cerr << std::endl << "Error: Unable to execute due to invalid code." << std::endl;
 		return 1;
 	}
@@ -113,7 +119,7 @@ int main(int argc, char* argv[]){
 	Thread::Pool workSpace(THREAD_COUNT);
 
 	// Create dumny instances to check the event loops are working
-	Instance dumy(&root);
+	Instance dumy(mainFunction);
 	workSpace.Issue({&dumy, 0});
 
 	// Blocks until all workers have no remaining work

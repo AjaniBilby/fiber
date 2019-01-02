@@ -10,8 +10,8 @@
 class Instance{
 	public:
 		Thread::Worker* owner;
-		Instance *parent;
-		void* local;
+		Instance *caller;
+		Register *local;
 
 		Function *instructions;
 

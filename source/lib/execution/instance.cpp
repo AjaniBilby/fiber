@@ -3,8 +3,8 @@
 
 Instance::Instance(Function *ref, Instance *prnt = nullptr){
 	this->instructions = ref;
-	this->local = Memory::Allocate(ref->domain);
-	this->parent = prnt;
+	this->local        = reinterpret_cast<Register*>( Memory::Allocate(ref->domain) );
+	this->caller       = prnt;
 };
 
 

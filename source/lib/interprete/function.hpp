@@ -4,12 +4,6 @@
 
 #include <string>
 #include <vector>
-#include <stack>
-
-struct FunctionReference{
-	void* ptr;
-	size_t relDepth;
-};
 
 struct __BlockStackElement__{
 	size_t start;
@@ -18,19 +12,15 @@ struct __BlockStackElement__{
 
 class Function{
 	public:
-		Function* parent;
+		void* parent; // Table*
 		std::string name;
 
 		Bytecode code;
-		std::vector<Function> child;
 
 		bool valid;
 		size_t domain;
 
-		Function(std::string name, std::vector<RawAction> tokens, size_t domainSize, Function* owner=nullptr);
-
-		// Find a function with the supplied name
-		FunctionReference find(std::string str);
+		Function(std::string name, std::vector<RawAction> tokens, size_t domainSize, void* owner=nullptr);
 
 		void finalize();
 	private:
@@ -44,4 +34,5 @@ class Function{
 
 
 #include "./../interprete/interpreter.hpp"
+#include "./table.hpp"
 #include "./function.cpp"
