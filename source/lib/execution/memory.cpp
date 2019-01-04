@@ -1,7 +1,7 @@
 #include "memory.hpp"
 
 namespace Memory{
-	void * Allocate(size_t space){
+	void* Allocate(size_t space){
 		#if (MemorySafe)
 			void *ptr;
 			ptr = malloc(space);

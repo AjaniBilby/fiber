@@ -244,6 +244,25 @@ class Register{
 			return *this;
 		};
 
+		void set(Register* value){
+			size_t size;
+			if (this->bytes < value->bytes){
+				size = this->bytes;
+			}else{
+				size = value->bytes;
+			}
+
+			if (size == 8){
+				this->pointer->uint64 = value->pointer->uint64;
+			}else if (size == 4){
+				this->pointer->uint32 = value->pointer->uint32;
+			}else if (size == 2){
+				this->pointer->uint16 = value->pointer->uint16;
+			}else if (size == 1){
+				this->pointer->uint32 = value->pointer->uint32;
+			}
+		}
+
 		// Set value to
 		template <typename T>
 		void set(T value){
@@ -394,7 +413,7 @@ class Register{
 			}
 
 			return 0;
-		}
+		};
 		float64 toFloat64(){
 			if (this->isInt){
 				if (this->isSigned){
@@ -429,7 +448,11 @@ class Register{
 			}
 
 			return 0;
-		}
+		};
+
+		bool IsTrue(){
+			return this->pointer->uint64 == 1;
+		};
 
 
 		// Change the register's mode

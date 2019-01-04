@@ -10,18 +10,35 @@
 class Instance{
 	public:
 		Thread::Worker* owner;
+
+		Instance(Function *reference, Instance *parent = nullptr, Handle* returnValue = nullptr, Order* returnPos = nullptr);
+		void Process(size_t position);
+
+	private:
 		Instance *caller;
-		Register *local;
+		Handle *local;
+
+		Handle* rtrnVal;
+		Order* rtrnPos;
 
 		Function *instructions;
 
 		Register reg[RegisterCount];
 
-		Instance(Function *reference, Instance *parent);
-		void Process(size_t position);
+		bool done;     // It has returned, and thus should return no more
+		bool complete; // It and all it's children have finished executing
 
-	private:
+
+
 		void CmdMath();
+		void CmdSet(
+			Interpreter::OpperandType type1,
+			uint64                    data1,
+			bool                      isCustom,
+			Interpreter::OpperandType type2,
+			uint64                    data2
+		);
+		void CmdReturn();
 };
 
 

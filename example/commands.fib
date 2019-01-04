@@ -42,8 +42,62 @@ math @rA - 1u
 # Return
 rtrn
 
+# Comparing
+cmpr @rA = @rB &rC
+cmpr @rA = &rB &rC
+cmpr &rA = &rB &rC
+cmpr &rA = @rB &rC
+cmpr @rA > @rB &rC
+cmpr @rA > &rB &rC
+cmpr &rA > &rB &rC
+cmpr &rA > @rB &rC
+cmpr @rA < @rB &rC
+cmpr @rA < &rB &rC
+cmpr &rA < &rB &rC
+cmpr &rA < @rB &rC
+cmpr &rA < 0.0f &rC
+cmpr &rA < 0.0i &rC
+cmpr &rA < 0.0u &rC
+cmpr &rA > 0.0f &rC
+cmpr &rA > 0.0i &rC
+cmpr &rA > 0.0u &rC
+cmpr &rA = 0.0f &rC
+cmpr &rA = 0.0i &rC
+cmpr &rA = 0.0u &rC
 
+# Bitwise
+bit &rA and &rB
+bit &rA and 0x1
+bit &rA and -1i
+bit &rA and 24u
+bit &rA not _
+bit &rA not _
+bit &rA not _
+bit &rA not _
+bit &rA or &rB
+bit &rA or 0x1
+bit &rA or -1i
+bit &rA or 24u
+bit &rA xor &rB
+bit &rA xor 0x1
+bit &rA xor -1i
+bit &rA xor 24u
+bit &rA shift -1i
+bit &rA shift 1i
+
+# Gate
 if &rA
 {
-	set &rA 0u
+
+}
+else
+{
+
+}
+
+
+# Function definition
+func test 2u
+{
+	rtrn
 }

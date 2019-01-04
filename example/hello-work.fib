@@ -1,5 +1,4 @@
 func main 0x8
 {
 	set @rA local
-	set @rB local
 }
