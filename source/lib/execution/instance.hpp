@@ -14,20 +14,25 @@ class Instance{
 		Instance(Function *reference, Instance *parent = nullptr, Handle* returnValue = nullptr, Order* returnPos = nullptr);
 		void Process(size_t position);
 
+		std::mutex lckSessions;
+		size_t sessions;
+
 	private:
 		Instance *caller;
 		Handle *local;
+		std::vector<Instance*> child;
 
 		Handle* rtrnVal;
 		Order* rtrnPos;
+
+		bool returned;
 
 		Function *instructions;
 
 		Register reg[RegisterCount];
 
-		bool done;     // It has returned, and thus should return no more
-		bool complete; // It and all it's children have finished executing
-
+		void AttemptDestruction();
+		void MarkChildAsDead(Instance* ptr);
 
 
 		void CmdMath(

@@ -1,11 +1,30 @@
 #include "./instance.hpp"
 
 
+namespace EventLoop{
+	void Schedule::Issue(Task task){
+		Instance* ptr = reinterpret_cast<Instance*>(task.reference);
+		ptr->lckSessions.lock();
+		ptr->sessions++;
+		ptr->lckSessions.unlock();
+
+		// Prevent other threads from altering while this task is active
+		std::lock_guard<std::mutex> lck( this->activity );
+
+		// Add the task to the queue
+		this->queue.push_back(task);
+
+		return;
+	};
+}
+
+
 Instance::Instance(Function *ref, Instance *prnt, Handle* returnValue, Order* returnPosition){
 	this->rtrnPos      = returnPosition;
 	this->rtrnVal      = returnValue;
 	this->caller       = prnt;
 	this->instructions = ref;
+	this->returned     = false;
 
 	if (ref->domain == 0){
 		this->local = reinterpret_cast<Handle*>( Memory::Allocate(ref->domain) );
@@ -29,6 +48,9 @@ void Instance::Process(size_t pos = 0){
 		std::cout << ToString(ptr) << std::endl;
 
 		switch(ptr->cmd){
+			case Command::mode:
+				this->reg[ptr->get(0)].setMode( static_cast<RegisterMode>(ptr->get(1)) );
+				break;
 			case Command::jump:
 				ptr = reinterpret_cast<Order*>( ptr->get(0) );
 				increment = false;
@@ -68,6 +90,9 @@ void Instance::Process(size_t pos = 0){
 					ptr->get(4)
 				);
 				break;
+			case Command::rtrn:
+				this->CmdReturn();
+				break;
 		}
 
 		if (increment == true){
@@ -75,6 +100,12 @@ void Instance::Process(size_t pos = 0){
 		}
 	}
 
+	this->lckSessions.lock();
+	this->sessions--;
+	this->lckSessions.unlock();
+
+
+	this->AttemptDestruction();
 	return;
 };
 
@@ -271,4 +302,53 @@ void Instance::CmdSet(Interpreter::OpperandType type1, uint64 data1, bool isCust
 		}
 	}
 };
-void Instance::CmdReturn(){};
+void Instance::CmdReturn(){
+	this->returned = true;
+	this->rtrnVal = nullptr;
+};
+
+
+void Instance::AttemptDestruction(){
+	// There is still code waiting to be executed in this instance
+	if (this->sessions > 0){
+		return;
+	}
+
+
+	// Check if any children remain
+	size_t size = this->child.size();
+	size_t remain = false;
+	for (size_t i=0; i<size; i++){
+		if (this->child[i] != nullptr){
+			return;
+		}
+	}
+
+
+	// If there are no children, double check there are no waiting tasks
+	//   Because if there are no children, then nothing else can issue a task for this instance
+	this->lckSessions.lock();
+	if (this->sessions > 0){
+		this->lckSessions.unlock();
+		return;
+	}
+	this->lckSessions.unlock();
+
+
+	if (this->caller != nullptr){
+		this->caller->MarkChildAsDead(this);
+	}
+	delete this;
+};
+
+void Instance::MarkChildAsDead(Instance *ptr){
+	size_t size = this->child.size();
+	for (size_t i=0; i<size; i++){
+		if (this->child[i] == ptr){
+			this->child[i] = nullptr;
+			break;
+		}
+	}
+
+	this->AttemptDestruction();
+}

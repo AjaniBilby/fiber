@@ -6,16 +6,6 @@ namespace EventLoop{
 		std::lock_guard<std::mutex> lck( this->activity );
 	};
 
-	void Schedule::Issue(Task task){
-		// Prevent other threads from altering while this task is active
-		std::lock_guard<std::mutex> lck( this->activity );
-
-		// Add the task to the queue
-		this->queue.push_back(task);
-
-		return;
-	};
-
 	SearchResult Schedule::Find(){
 		// Prevent other threads from altering while this task is active
 		std::lock_guard<std::mutex> lck( this->activity );
@@ -43,4 +33,7 @@ namespace EventLoop{
 
 		return this->queue.empty() == false;
 	};
+
+	// Schedule::Issue moved to instance.cpp as it needed instance to be defined
+
 };

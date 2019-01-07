@@ -33,4 +33,6 @@ namespace EventLoop{
 };
 
 
+
+#include "./thread.hpp"
 #include "./eventloop.cpp"
