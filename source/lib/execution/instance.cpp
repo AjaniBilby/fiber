@@ -44,10 +44,29 @@ void Instance::Process(size_t pos = 0){
 				}
 
 				break;
+
 			case Command::stop:
 				// Trigger the while loop to stop on next itteration
 				increment = false;
 				ptr = nullptr;
+				break;
+			case Command::set:
+				this->CmdSet(
+					static_cast<Interpreter::OpperandType>( ptr->get(0) ),
+					ptr->get(1),
+					(ptr->get(2) == 1),
+					static_cast<Interpreter::OpperandType>( ptr->get(3) ),
+					ptr->get(4)
+				);
+				break;
+			case Command::math:
+				this->CmdMath(
+					static_cast<Interpreter::OpperandType>( ptr->get(0) ),
+					ptr->get(1),
+					static_cast<Interpreter::MathOpperation>( ptr->get(2) ),
+					static_cast<Interpreter::OpperandType>( ptr->get(3) ),
+					ptr->get(4)
+				);
 				break;
 		}
 
@@ -60,8 +79,164 @@ void Instance::Process(size_t pos = 0){
 };
 
 
-void Instance::CmdMath(){
-	// DON'T FORGET THAT POINTER ADDITION IS WEIRD
+void Instance::CmdMath(Interpreter::OpperandType type1, uint64 data1, Interpreter::MathOpperation opperator, Interpreter::OpperandType type2, uint64 data2){
+	if (type1 == Interpreter::OpperandType::RegisterAddress){
+		char* ptr = reinterpret_cast<char*>(this->reg[data1].pointer);
+
+		if (type2 == Interpreter::OpperandType::Uint){
+			ptr += data2;
+		}else{
+			ptr += static_cast<int64>(data2);
+		}
+
+		this->reg[data1].pointer = reinterpret_cast<Handle*>(ptr);
+		return;
+	}else{
+		switch(type2){
+			case Interpreter::OpperandType::Unknown:
+				break;
+			case Interpreter::OpperandType::RegisterValue:
+				if (this->reg[data2].isInt){
+					if (this->reg[data2].isSigned){
+						switch (opperator){
+							case Interpreter::MathOpperation::addition:
+								this->reg[data1] += this->reg[data2].toInt64();
+								break;
+							case Interpreter::MathOpperation::subtract:
+								this->reg[data1] -= this->reg[data2].toInt64();
+								break;
+							case Interpreter::MathOpperation::divide:
+								this->reg[data1] /= this->reg[data2].toInt64();
+								break;
+							case Interpreter::MathOpperation::multiply:
+								this->reg[data1] *= this->reg[data2].toInt64();
+								break;
+							case Interpreter::MathOpperation::modulus:
+								this->reg[data1] %= this->reg[data2].toInt64();
+								break;
+						}
+
+						this->reg[data1] += this->reg[data2].toInt64();
+					}else{
+						switch (opperator){
+							case Interpreter::MathOpperation::addition:
+								this->reg[data1] += this->reg[data2].toUint64();
+								break;
+							case Interpreter::MathOpperation::subtract:
+								this->reg[data1] -= this->reg[data2].toUint64();
+								break;
+							case Interpreter::MathOpperation::divide:
+								this->reg[data1] /= this->reg[data2].toUint64();
+								break;
+							case Interpreter::MathOpperation::multiply:
+								this->reg[data1] *= this->reg[data2].toUint64();
+								break;
+							case Interpreter::MathOpperation::modulus:
+								this->reg[data1] %= this->reg[data2].toUint64();
+								break;
+						}
+					}
+				}else{
+					switch (opperator){
+							case Interpreter::MathOpperation::addition:
+								this->reg[data1] += this->reg[data2].toFloat64();
+								break;
+							case Interpreter::MathOpperation::subtract:
+								this->reg[data1] -= this->reg[data2].toFloat64();
+								break;
+							case Interpreter::MathOpperation::divide:
+								this->reg[data1] /= this->reg[data2].toFloat64();
+								break;
+							case Interpreter::MathOpperation::multiply:
+								this->reg[data1] *= this->reg[data2].toFloat64();
+								break;
+							case Interpreter::MathOpperation::modulus:
+								this->reg[data1] %= this->reg[data2].toFloat64();
+								break;
+						}
+				}
+
+				return;
+			case Interpreter::OpperandType::RegisterAddress:
+				switch (opperator){
+					case Interpreter::MathOpperation::addition:
+						this->reg[data1] += reinterpret_cast<uint64>(this->reg[data2].pointer);
+						return;
+					case Interpreter::MathOpperation::subtract:
+						this->reg[data1] -= reinterpret_cast<uint64>(this->reg[data2].pointer);
+						return;
+					case Interpreter::MathOpperation::multiply:
+						this->reg[data1] *= reinterpret_cast<uint64>(this->reg[data2].pointer);
+						return;
+					case Interpreter::MathOpperation::divide:
+						this->reg[data1] /= reinterpret_cast<uint64>(this->reg[data2].pointer);
+						return;
+					case Interpreter::MathOpperation::modulus:
+						this->reg[data1] %= reinterpret_cast<uint64>(this->reg[data2].pointer);
+						return;
+				}
+				return;
+			case Interpreter::OpperandType::Int:
+				switch (opperator){
+					case Interpreter::MathOpperation::addition:
+						this->reg[data1] += static_cast<int64>(data2);
+						return;
+					case Interpreter::MathOpperation::subtract:
+						this->reg[data1] -= static_cast<int64>(data2);
+						return;
+					case Interpreter::MathOpperation::multiply:
+						this->reg[data1] *= static_cast<int64>(data2);
+						return;
+					case Interpreter::MathOpperation::divide:
+						this->reg[data1] /= static_cast<int64>(data2);
+						return;
+					case Interpreter::MathOpperation::modulus:
+						this->reg[data1] %= static_cast<int64>(data2);
+						return;
+				}
+				return;
+			case Interpreter::OpperandType::Uint:
+				// Overflow to hex
+			case Interpreter::OpperandType::Bytes:
+				switch (opperator){
+					case Interpreter::MathOpperation::addition:
+						this->reg[data1] += data2;
+						return;
+					case Interpreter::MathOpperation::subtract:
+						this->reg[data1] -= data2;
+						return;
+					case Interpreter::MathOpperation::multiply:
+						this->reg[data1] *= data2;
+						return;
+					case Interpreter::MathOpperation::divide:
+						this->reg[data1] /= data2;
+						return;
+					case Interpreter::MathOpperation::modulus:
+						this->reg[data1] %= data2;
+						return;
+				}
+				return;
+			case Interpreter::OpperandType::Float:
+				switch (opperator){
+					case Interpreter::MathOpperation::addition:
+						this->reg[data1] += static_cast<float64>(data2);
+						return;
+					case Interpreter::MathOpperation::subtract:
+						this->reg[data1] -= static_cast<float64>(data2);
+						return;
+					case Interpreter::MathOpperation::multiply:
+						this->reg[data1] *= static_cast<float64>(data2);
+						return;
+					case Interpreter::MathOpperation::divide:
+						this->reg[data1] /= static_cast<float64>(data2);
+						return;
+					case Interpreter::MathOpperation::modulus:
+						this->reg[data1] %= static_cast<float64>(data2);
+				}
+				return;
+		}
+	}
+
 };
 void Instance::CmdSet(Interpreter::OpperandType type1, uint64 data1, bool isCustom, Interpreter::OpperandType type2, uint64 data2){
 	// See # docs/language/commands/set.md for valid combinations
@@ -96,4 +271,4 @@ void Instance::CmdSet(Interpreter::OpperandType type1, uint64 data1, bool isCust
 		}
 	}
 };
-void Instance::CmdReturn();
+void Instance::CmdReturn(){};

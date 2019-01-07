@@ -22,6 +22,79 @@ class Register{
 		};
 
 
+		Register& operator%=(float64 value){
+			// Make the modulo absolute
+			if ( value < 0 ){
+				value = 0 - value;
+			}
+
+			if (this->isInt){
+				// int % float = 0 ALWAYS
+				switch (this->bytes){
+					case 1:
+						this->pointer->uint8 = 0;
+						break;
+					case 2:
+						this->pointer->uint16 = 0;
+						break;
+					case 4:
+						this->pointer->uint32 = 0;
+						break;
+					case 8:
+						this->pointer->uint64 = 0;
+						break;
+				}
+			}else{
+				if (this->bytes == 8){
+					while (this->pointer->float64 > value){
+						this->pointer->float64 -= value;
+					}
+				}else{
+					while (this->pointer->float32 > value){
+						this->pointer->float64 -= value;
+					}
+				}
+			}
+
+			return *this;
+		};
+		Register& operator%=(float32 value){
+			// Make the modulo absolute
+			if ( value < 0 ){
+				value = 0 - value;
+			}
+
+			if (this->isInt){
+				// int % float = 0 ALWAYS
+				switch (this->bytes){
+					case 1:
+						this->pointer->uint8 = 0;
+						break;
+					case 2:
+						this->pointer->uint16 = 0;
+						break;
+					case 4:
+						this->pointer->uint32 = 0;
+						break;
+					case 8:
+						this->pointer->uint64 = 0;
+						break;
+				}
+			}else{
+				if (this->bytes == 8){
+					while (this->pointer->float64 > value){
+						this->pointer->float64 -= value;
+					}
+				}else{
+					while (this->pointer->float32 > value){
+						this->pointer->float64 -= value;
+					}
+				}
+			}
+
+			return *this;
+		};
+
 		// Iterate on the existing value
 		template <typename T>
 		Register& operator+=(T value){
@@ -201,6 +274,11 @@ class Register{
 		};
 		template <typename T>
 		Register& operator%=(T value){
+			// Make the modulo absolute
+			if ( value < 0 ){
+				value = 0 - value;
+			}
+
 			if (this->isInt){
 				if (this->isSigned){
 					switch (this->bytes){
@@ -235,9 +313,13 @@ class Register{
 				}
 			}else{
 				if (this->bytes == 8){
-					this->pointer->float64 %= value;
+					while (this->pointer->float64 > value){
+						this->pointer->float64 -= value;
+					}
 				}else{
-					this->pointer->float32 %= value;
+					while (this->pointer->float32 > value){
+						this->pointer->float64 -= value;
+					}
 				}
 			}
 

@@ -30,7 +30,14 @@ class Instance{
 
 
 
-		void CmdMath();
+		void CmdMath(
+			Interpreter::OpperandType   type1,
+			uint64                      data1,
+			Interpreter::MathOpperation opperator,
+			Interpreter::OpperandType   type2,
+			uint64                      data2
+
+		);
 		void CmdSet(
 			Interpreter::OpperandType type1,
 			uint64                    data1,

@@ -12,11 +12,7 @@ set {A} {Opperation} {B}
 | • | • | Int
 | • | • | Uint
 | • | • | Hex
-| • | ``+``, or ``-`` | ``parse``
-| • | • | ``local``
-
+| • | • | Float
 | Register Address | ``+``, or ``-`` | Int
 | • | • | Uint
-| • | • | ``parse``
-| • | • | ``local``
 

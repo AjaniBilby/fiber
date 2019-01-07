@@ -732,6 +732,25 @@ namespace Interpreter{
 		return out;
 	}
 
+	inline Action InterpLoop(RawAction act){
+		Action out;
+		out.cmd = Command::loop;
+		out.line = act.line;
+
+		if (act.param.size() != 1){
+			std::cerr << "Error: Invalid number of arguments for loop command" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(0);
+
+
+		return out;
+	}
+
 
 	// Forwards interpretation to dedicated functions
 	Action Convert(RawAction act, Function* context){
@@ -745,7 +764,9 @@ namespace Interpreter{
 				std::cerr << "  line: " << act.line << std::endl;
 
 				break;
-
+			case Command::loop:
+				out = InterpLoop(act);
+				break;
 			case Command::bitwise:
 				out = InterpBitwise(act);
 				break;
