@@ -11,8 +11,13 @@ class Instance{
 	public:
 		Thread::Worker* owner;
 
-		Instance(Function *reference, Instance *parent = nullptr, Handle* returnValue = nullptr, Order* returnPos = nullptr);
-		void Process(size_t position);
+		Instance(
+			Function  *reference,
+			Instance  *parent       = nullptr,
+			Handle    *returnValue  = nullptr,
+			Order     *returnPos    = nullptr
+		);
+		void Process(Order* position = nullptr);
 
 		std::mutex lckSessions;
 		size_t sessions;
@@ -34,6 +39,7 @@ class Instance{
 		void AttemptDestruction();
 		void MarkChildAsDead(Instance* ptr);
 
+		void AddChild(Instance* ptr);
 
 		void CmdMath(
 			Interpreter::OpperandType   type1,

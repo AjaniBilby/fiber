@@ -35,10 +35,17 @@ Instance::Instance(Function *ref, Instance *prnt, Handle* returnValue, Order* re
 
 
 
-void Instance::Process(size_t pos = 0){
+void Instance::Process(Order* pos){
 	Bytecode* code = &this->instructions->code;
-	auto ptr = code->next();
+
+	Order* ptr = code->next(pos);
+	Order* tmp = nullptr;
+
 	bool increment = true;
+
+	Instance* awaitingLaunch;
+
+	std::string msg;
 
 	std::cout << "Executing " << ptr << std::endl;
 
@@ -90,8 +97,72 @@ void Instance::Process(size_t pos = 0){
 					ptr->get(4)
 				);
 				break;
+			case Command::initilize:
+				tmp = code->next(ptr);
+
+				awaitingLaunch = new Instance(
+					reinterpret_cast<Function*>( ptr->get(0) ),
+					this,
+					this->reg[ ptr->get(2) ].pointer,
+					tmp
+				);
+				this->AddChild(awaitingLaunch);
+
+				this->reg[ ptr->get(1) ].pointer = awaitingLaunch->local;
+
+				// Jump to the preamble code
+				ptr = code->next(tmp);
+				increment = false;
+
+				break;
+			case Command::launch:
+				this->owner->IssueToWorkPool({awaitingLaunch, nullptr});
+				break;
+
 			case Command::rtrn:
 				this->CmdReturn();
+				break;
+
+
+			case Command::invalid:
+				msg  = "Error: Unknown error, unexpected invalid command\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::blank:
+				msg  = "Error: Unknown error, unexpected blank command - all blanks should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::gateOther:
+				msg  = "Error: Unknown error, unexpected gateOther (aka 'else') command - all gateOthers should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::loop:
+				msg  = "Error: Unknown error, unexpected loop command - all loops should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::blockExit:
+				msg  = "Error: Unknown error, unexpected blockExit command - all blockExits should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::blockRepeat:
+				msg  = "Error: Unknown error, unexpected blockRepeat command - all blockRepeats should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::blockOpen:
+				msg  = "Error: Unknown error, unexpected blockOpen (aka '{') command - blockOpen blockExits should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
+				break;
+			case Command::blockClose:
+				msg  = "Error: Unknown error, unexpected blockClose (aka '}') command - all blockClose should be removed during interpretation\n";
+				msg += "  line: " + std::to_string(ptr->line) + "\n";
+				std::cerr << msg;
 				break;
 		}
 
@@ -351,4 +422,22 @@ void Instance::MarkChildAsDead(Instance *ptr){
 	}
 
 	this->AttemptDestruction();
-}
+};
+
+
+
+void Instance::AddChild(Instance *ptr){
+	// Attempt to find a blank spot to fill
+	size_t size = this->child.size();
+	for (size_t i=0; i<size; i++){
+		if (this->child[i] == nullptr){
+			this->child[i] = ptr;
+			return;
+		}
+	}
+
+
+	// No spots are available due to previous children destorying
+	// Make a new slot and insert this child
+	this->child.push_back(ptr);
+};

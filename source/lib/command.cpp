@@ -47,6 +47,9 @@ std::string ToString(Command cmd){
 		case Command::blank:
 			// For internal use only
 			return "Err(CMD:blank)";
+		case Command::launch:
+			// For internal use only
+			return "Err(CMD:launch)";
 	}
 
 	return "Err";
@@ -59,6 +62,9 @@ Command CommandFrom(std::string str){
 		// For internal use only
 		return Command::invalid;
 	} else if (str == "jump"){
+		// For internal use only
+		return Command::invalid;
+	} else if (str == "launch"){
 		// For internal use only
 		return Command::invalid;
 	} else if (str == "set"){

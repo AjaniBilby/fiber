@@ -30,6 +30,7 @@ enum class Command: unsigned char{
 	memalloc,        // malloc
 	function,        // func
 	rtrn,            // return
+	launch,          // (internal use only)
 };
 
 #include "./command.cpp"

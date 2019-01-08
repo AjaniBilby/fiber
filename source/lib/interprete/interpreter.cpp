@@ -404,7 +404,7 @@ namespace Interpreter{
 		out.cmd = Command::initilize;
 		out.line = act.line;
 
-		if (act.param.size() != 3){
+		if (act.param.size() != 4){
 			std::cerr << "Error: Invalid number of arguments for initilize command" << std::endl;
 			std::cerr << "  args: " << ToString(act.param) << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
@@ -412,7 +412,7 @@ namespace Interpreter{
 			out.cmd = Command::invalid;
 			return out;
 		}
-		out.param.resize(2);
+		out.param.resize(3);
 
 
 		// Save the name of the function for it to be referenced later
@@ -439,6 +439,27 @@ namespace Interpreter{
 			return out;
 		}
 		out.param[1] = opper.data.uint64;
+
+
+		// Read the return address register
+		opper = Interpreter::Opperand(act.param[2]);
+		if (opper.type != Interpreter::OpperandType::RegisterAddress){
+			std::cerr << "Error: Invalid function initilization; no register to specify the return address. Parameter 3 must be a Register Address." << std::endl;
+			std::cerr << "  arg : " << act.param[2] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid function initilization; invalid parameter 3." << std::endl;
+			std::cerr << "  arg : " << act.param[2] << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[2] = opper.data.uint64;
 
 
 		out.cmd = Command::invalid;
@@ -832,6 +853,10 @@ namespace Interpreter{
 				break;
 			case Command::jump:
 				std::cerr << "Error: Jump command is for internal use only" << std::endl;
+				std::cerr << "  line: " << act.line << std::endl;
+				break;
+			case Command::launch:
+				std::cerr << "Error: Launch command is for internal use only" << std::endl;
 				std::cerr << "  line: " << act.line << std::endl;
 				break;
 		}

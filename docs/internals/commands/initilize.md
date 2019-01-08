@@ -11,11 +11,11 @@ init name @rA
 ```
 Converts to
 ```fiber
-init name @rA
+init name @rA @rB
 jump {numCmdsToA}
 	...
+launch
 jump {numCmdsToB}
-stop
 	# A
 	...
 stop

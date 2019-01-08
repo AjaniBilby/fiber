@@ -3,6 +3,7 @@
 #include "./../../flags.hpp"
 
 #include "./../typebase.hpp"
+#include "./bytecode.hpp"
 
 #include <deque>
 #include <mutex>
@@ -11,7 +12,7 @@
 namespace EventLoop{
 	struct Task{
 		void* reference;
-		size_t position;
+		Order* position = nullptr;
 	};
 
 	struct SearchResult{

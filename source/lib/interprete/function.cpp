@@ -104,7 +104,7 @@ void Function::SimplifyBehaviour(){
 			}
 
 
-			// Find the end of the preamble
+			// Find the end of the return code
 			size_t k=j+1;
 			depth = 0;
 			for (; k<size; k++){
@@ -132,12 +132,18 @@ void Function::SimplifyBehaviour(){
 			// Convert the necessary brackets
 			this->actions[i+1].cmd = Command::jump;
 			this->actions[i+1].param.resize(1);
-			this->actions[i+1].param[0] = (j+2);
-			this->actions[j].cmd = Command::jump;
-			this->actions[j].param.resize(1);
-			this->actions[j].param[0] = (k+2);
-			this->actions[j+1].cmd = Command::stop;
-			this->actions[j+1].param.resize(0);
+			this->actions[i+1].param[0] = (j+1);
+			this->actions[j].cmd = Command::launch;
+			this->actions[j].param.resize(0);
+			this->actions[j+1].cmd = Command::jump;
+			this->actions[j+1].param.resize(1);
+			// Jump to after the return code's stop if there is more code afterwards
+			// Otherwise just jump to the stop as it is the last command
+			if (k+1 >= size){
+				this->actions[j+1].param[0] = (k);
+			}else{
+				this->actions[j+1].param[0] = (k+1);
+			}
 			this->actions[k].cmd = Command::stop;
 			this->actions[k].param.resize(0);
 		}
