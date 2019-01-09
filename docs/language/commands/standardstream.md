@@ -2,12 +2,12 @@
 This command allows a string of bytes to be piped to standard out.
 
 ```fiber
-ss {Address} {Bytes} {Channel}
+ss {Channel} {Address} {Bytes}
 ```
 
 ## Valid Combinations
 | Address | Bytes | Channel |
 |:-:|:-:|:-:|
-| Register Address | Register Value | ``out``|
-| • | • | ``log`` |
-| • | • | ``error`` |
+| ``out``| Register Address | Register Value |
+| ``log`` | • | • |
+| ``error`` | • | •|
