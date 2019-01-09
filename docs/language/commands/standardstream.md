@@ -9,5 +9,11 @@ ss {Channel} {Address} {Bytes}
 | Address | Bytes | Channel |
 |:-:|:-:|:-:|
 | ``out``| Register Address | Register Value |
+| • | • | Uint |
+| • | • | Hex |
 | ``log`` | • | • |
+| • | • | Uint |
+| • | • | Hex |
 | ``error`` | • | •|
+| • | • | Uint |
+| • | • | Hex |
