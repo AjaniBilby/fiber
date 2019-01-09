@@ -373,6 +373,30 @@ void Instance::CmdSet(Interpreter::OpperandType type1, uint64 data1, bool isCust
 		}
 	}
 };
+void Instance::CmdSS(uint64 mode, uint64 data1, Interpreter::OpperandType type2, uint64 data2){
+	std::string buffer;
+	size_t size;
+
+	// Get the number of bytes to be piped
+	if (type2 == Interpreter::OpperandType::RegisterValue){
+		size = this->reg[data2].toUint64();
+	}else{
+		size = data2;
+	}
+	buffer.resize(size);
+
+	// Copy the data to a single buffer to it can be piped to the iostream in one go
+	// Thus removing interference with other threads
+	Memory::Duplicate(&buffer[0], this->reg[data1].pointer, size);
+
+	if (mode == 0){
+		std::cout << buffer;
+	}else if (mode == 1){
+		std::clog << buffer;
+	}else if (mode == 2){
+		std::cerr << buffer;
+	}
+};
 void Instance::CmdReturn(){
 	this->returned = true;
 	this->rtrnVal = nullptr;

@@ -112,6 +112,80 @@ namespace Interpreter{
 
 
 namespace Interpreter{
+	inline Action InterpSS(RawAction act){
+		Action out;
+		out.cmd = Command::standardStream;
+		out.line = act.line;
+
+		// ss [out/log/err] @r? &r?
+
+		if (act.param.size() != 4){
+			std::cerr << "Error: Invalid number of arguments for standard stream opperation" << std::endl;
+			std::cerr << "  args: " << ToString(act.param) << std::endl;
+			std::cerr << "  line: " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param.resize(4);
+
+
+		if       (act.param[1] == "out"){
+			out.param[0] = 0;
+		}else if (act.param[1] == "log"){
+			out.param[0] = 1;
+		}else if (act.param[1] == "err"){
+			out.param[0] = 2;
+		}
+
+
+		auto opper = Interpreter::Opperand(act.param[2]);
+		if (opper.type != Interpreter::OpperandType::RegisterAddress){
+			std::cerr << "Error: Invalid standard stream argument, the address value must be a register's address" << std::endl;
+			std::cerr << "  arg  : " << act.param[2] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid register reference" << std::endl;
+			std::cerr << "  arg  : " << act.param[2] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[1] = opper.data.uint64;
+
+
+		opper = Interpreter::Opperand(act.param[3]);
+		if ( opper.type != Interpreter::OpperandType::RegisterAddress &&
+		     opper.type != Interpreter::OpperandType::Uint &&
+				 opper.type != Interpreter::OpperandType::Bytes
+		){
+			std::cerr << "Error: Invalid standard stream argument, the length value must be a register value or uint constant." << std::endl;
+			std::cerr << "  arg  : " << act.param[2] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		if (opper.valid == false){
+			std::cerr << "Error: Invalid length value." << std::endl;
+			std::cerr << "  arg  : " << act.param[2] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
+		}
+		out.param[2] = static_cast<uint64>(opper.type);
+		out.param[3] = opper.data.uint64;
+
+
+		return out;
+	}
+
 	inline Action InterpBitwise(RawAction act){
 		Action out;
 		out.cmd = Command::bitwise;
@@ -132,16 +206,16 @@ namespace Interpreter{
 		auto opper = Interpreter::Opperand(act.param[1]);
 		if (opper.type != Interpreter::OpperandType::RegisterValue){
 			std::cerr << "Error: Invalid bitwise opperand A. Opperand must be Register Value type." << std::endl;
-			std::cerr << "  arg : " << act.param[1] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
+			std::cerr << "  arg  : " << act.param[1] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
 
 			out.cmd = Command::invalid;
 			return out;
 		}
 		if (opper.valid == false){
 			std::cerr << "Error: Invalid opperand A input." << std::endl;
-			std::cerr << "  arg : " << act.param[1] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
+			std::cerr << "  arg  : " << act.param[1] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
 
 			out.cmd = Command::invalid;
 			return out;
@@ -165,8 +239,8 @@ namespace Interpreter{
 		// Invalid Opperand B for NOT
 		if (out.param[1] == 3 && act.param[3] != "_"){
 			std::cerr << "Error: Invalid opperand B for bitwise not execution. Opperand B must be \"_\"." << std::endl;
-			std::cerr << "  arg : " << act.param[3] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
+			std::cerr << "  arg  : " << act.param[3] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
 
 			out.cmd = Command::invalid;
 			return out;
@@ -175,8 +249,8 @@ namespace Interpreter{
 		// Invalid Opperand B for Shift
 		if (opper.type != Interpreter::OpperandType::Int && out.param[1] == 4){
 			std::cerr << "Error: Invalid opperand B for bitwise shift execution. Opperand B must be a signed integer." << std::endl;
-			std::cerr << "  arg : " << act.param[3] << std::endl;
-			std::cerr << "  line: " << act.line << std::endl;
+			std::cerr << "  arg  : " << act.param[3] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
 
 			out.cmd = Command::invalid;
 			return out;
@@ -184,8 +258,8 @@ namespace Interpreter{
 		// Bitwise cannot execute on an address
 		if (opper.type == Interpreter::OpperandType::RegisterAddress){
 			std::cerr << "Error: Invalid opperand B for bitwise opperation. Opperands cannot be register addresses." << std::endl;
-			std::cerr << "  arg : " << act.param[3] << std::endl;
-			std::cerr << "  line: " << act.param[3] << std::endl;
+			std::cerr << "  arg  : " << act.param[3] << std::endl;
+			std::cerr << "  line : " << act.param[3] << std::endl;
 
 			out.cmd = Command::invalid;
 			return out;
@@ -834,10 +908,13 @@ namespace Interpreter{
 				out = InterpStop(act);
 				break;
 
+			case Command::standardStream:
+				out = InterpSS(act);
+				break;
+
 
 			case Command::blockExit:
 			case Command::blockRepeat:
-			case Command::standardStream:
 			case Command::memalloc:
 				std::cerr << "Error: Unimplemented command" << std::endl;
 				std::cerr << "  line: " << act.line << std::endl;

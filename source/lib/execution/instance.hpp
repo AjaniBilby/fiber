@@ -56,6 +56,12 @@ class Instance{
 			Interpreter::OpperandType type2,
 			uint64                    data2
 		);
+		void CmdSS(
+			uint64                     mode,
+			uint64                    data1,
+			Interpreter::OpperandType type2,
+			uint64                    data2
+		);
 		void CmdReturn();
 };
 
