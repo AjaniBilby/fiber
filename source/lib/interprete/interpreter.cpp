@@ -162,7 +162,7 @@ namespace Interpreter{
 		opper = Interpreter::Opperand(act.param[3]);
 		if ( opper.type != Interpreter::OpperandType::RegisterAddress &&
 		     opper.type != Interpreter::OpperandType::Uint &&
-				 opper.type != Interpreter::OpperandType::Bytes
+		     opper.type != Interpreter::OpperandType::Bytes
 		){
 			std::cerr << "Error: Invalid standard stream argument, the length value must be a register value or uint constant." << std::endl;
 			std::cerr << "  arg  : " << act.param[2] << std::endl;
