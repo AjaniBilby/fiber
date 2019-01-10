@@ -22,7 +22,7 @@ class Function{
 
 		Function(std::string name, std::vector<RawAction> tokens, size_t domainSize, void* owner=nullptr);
 
-		void finalize();
+		void Finalize();
 	private:
 		std::vector<Action> actions;
 

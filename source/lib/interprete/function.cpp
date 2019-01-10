@@ -10,7 +10,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	size_t size = tokens.size();
 	this->actions.resize(size);
 	for (size_t i=0; i<size; i++){
-		this->actions[i] = Interpreter::Convert(tokens[i], this);
+		this->actions[i] = Interpreter::Convert(tokens[i]);
 
 		if (this->actions[i].cmd == Command::invalid){
 			this->valid = false;
@@ -19,13 +19,18 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 	}
 	tokens.resize(0);
 
+	return;
+};
 
+void Function::Finalize(){
 	// Convert complex bahaviours into simpler ones
 	//   (e.i. loops into jumps)
+	// Most importantly it ties function references from names to exact address
 	this->SimplifyBehaviour();
 
 
 	// Move commands into bytecode
+	size_t size = this->actions.size();
 	for (size_t i=0; i<size; i++){
 		this->code.append(this->actions[i]);
 	}
@@ -35,8 +40,7 @@ Function::Function(std::string name, std::vector<RawAction> tokens, size_t domai
 
 	// Delete the temporary state of the commands used during simplifying behaviour
 	this->actions.resize(0);
-	return;
-};
+}
 
 
 

@@ -46,7 +46,7 @@ namespace Interpreter{
 	};
 
 
-	Action Convert(RawAction act, Function* context);
+	Action Convert(RawAction act);
 };
 
 

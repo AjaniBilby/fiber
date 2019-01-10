@@ -473,7 +473,7 @@ namespace Interpreter{
 		return out;
 	}
 
-	inline Action InterpInitilize(RawAction act, Function* context){
+	inline Action InterpInitilize(RawAction act){
 		Action out;
 		out.cmd = Command::initilize;
 		out.line = act.line;
@@ -558,7 +558,7 @@ namespace Interpreter{
 
 		bool addressMode = false;
 		auto opper = Interpreter::Opperand(act.param[1]);
-		if (opper.type == Interpreter::OpperandType::RegisterAddress || opper.type == Interpreter::OpperandType::RegisterValue){
+		if (opper.type != Interpreter::OpperandType::RegisterAddress && opper.type != Interpreter::OpperandType::RegisterValue){
 			addressMode = opper.type == Interpreter::OpperandType::RegisterAddress;
 
 			out.param[0] = static_cast<uint64>(opper.type);
@@ -583,6 +583,7 @@ namespace Interpreter{
 			return out;
 		}
 
+		// Get opperand and check it is valid in the context
 		if       (act.param[2] == "+"){
 			out.param[2] = static_cast<uint64>(Interpreter::MathOpperation::addition);
 		}else if (act.param[2] == "-"){
@@ -623,6 +624,7 @@ namespace Interpreter{
 			}
 		}
 
+		// Get opperand B
 		opper = Interpreter::Opperand(act.param[3]);
 		out.param[3] = static_cast<uint64>(opper.type);
 		out.param[4] = static_cast<uint64>(opper.data.uint64);
@@ -848,7 +850,7 @@ namespace Interpreter{
 
 
 	// Forwards interpretation to dedicated functions
-	Action Convert(RawAction act, Function* context){
+	Action Convert(RawAction act){
 		Action out;
 		out.cmd = Command::invalid;
 
@@ -885,7 +887,7 @@ namespace Interpreter{
 				break;
 
 			case Command::initilize:
-				out = InterpInitilize(act, context);
+				out = InterpInitilize(act);
 				break;
 
 			case Command::math:

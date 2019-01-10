@@ -102,6 +102,26 @@ Table::Table(std::vector<RawAction> tokens){
 		std::cerr << "  command : " << tokens[i].param[0] << std::endl;
 		this->valid = false;
 	}
+
+
+	// If this dictionary is alread invalid there is no point continuing
+	if (this->valid == false){
+		return;
+	}
+
+
+	// Finalize all functions and check their validity
+	size = this->function.size();
+	for (size_t i=0; i<size; i++){
+		this->function[i].Finalize();
+
+		if (this->function[i].valid == false){
+			this->valid = false;
+
+			// Since one function is invalid it makes the whole dictionary invalid
+			break;
+		}
+	}
 }
 
 
