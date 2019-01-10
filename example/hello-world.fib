@@ -1,0 +1,38 @@
+func main 11u
+{
+	set @rA local
+	mode rA uint8
+
+	# H
+	set &rA 72u
+	# e
+	math @rA + 1uu
+	set &rA 101u
+	# l
+	math @rA + 1u
+	set &rA 108u
+	# l
+	math @rA + 1u
+	set &rA 108u
+	# o
+	math @rA + 1u
+	set &rA 111u
+	#
+	math @rA + 1u
+	set &rA 32u
+	# W
+	math @rA + 1u
+	set &rA 87u
+	# o
+	math @rA + 1u
+	set &rA 111u
+	# r
+	math @rA + 1u
+	set &rA 114u
+	# l
+	math @rA + 1u
+	set &rA 108u
+	# d
+	math @rA + 1u
+	set &rA 100u
+}

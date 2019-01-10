@@ -558,8 +558,8 @@ namespace Interpreter{
 
 		bool addressMode = false;
 		auto opper = Interpreter::Opperand(act.param[1]);
-		if (opper.type != Interpreter::OpperandType::RegisterAddress && opper.type != Interpreter::OpperandType::RegisterValue){
-			addressMode = opper.type == Interpreter::OpperandType::RegisterAddress;
+		if (opper.type == Interpreter::OpperandType::RegisterAddress || opper.type == Interpreter::OpperandType::RegisterValue){
+			addressMode = ( opper.type == Interpreter::OpperandType::RegisterAddress );
 
 			out.param[0] = static_cast<uint64>(opper.type);
 			out.param[1] = static_cast<uint64>(opper.data.uint64);
@@ -567,8 +567,10 @@ namespace Interpreter{
 			if (opper.valid == false){
 				std::cerr << "Error: Invalid math opperand A." << std::endl;
 				std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
-				std::cerr << "  arg : " << act.param[1] << std::endl;
-				std::cerr << "  line: " << act.line << std::endl;
+				std::cerr << "   arg : " << act.param[1] << std::endl;
+				std::cerr << "  line : " << act.line << std::endl;
+				std::cerr << "    type : " << out.param[0] << std::endl;
+				std::cerr << "     val : " << out.param[1] << std::endl;
 
 				out.cmd = Command::invalid;
 				return out;
@@ -622,6 +624,13 @@ namespace Interpreter{
 				out.cmd = Command::invalid;
 				return out;
 			}
+		}else{
+			std::cerr << "Error: Invalid math opperation." << std::endl;
+			std::cerr << " opper : " << act.param[2] << std::endl;
+			std::cerr << "  line : " << act.line << std::endl;
+
+			out.cmd = Command::invalid;
+			return out;
 		}
 
 		// Get opperand B
@@ -630,9 +639,9 @@ namespace Interpreter{
 		out.param[4] = static_cast<uint64>(opper.data.uint64);
 
 		if (opper.valid == false){
-			std::cerr << "Error: Invalid math opperand A." << std::endl;
+			std::cerr << "Error: Invalid math opperand B." << std::endl;
 			std::cerr << "  Unknown reason, possibly miss typed value, or invalid type" << std::endl;
-			std::cerr << "  arg : " << act.param[1] << std::endl;
+			std::cerr << "  arg : " << act.param[3] << std::endl;
 			std::cerr << "  line: " << act.line << std::endl;
 
 			out.cmd = Command::invalid;
